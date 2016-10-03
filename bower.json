@@ -1,0 +1,24 @@
+{
+  "name": "uiuc-better-catalog",
+  "description": "Improved course explorer & registration system",
+  "main": "main.js",
+  "authors": [
+    "Chada Kengradomying",
+    "Fang Lu",
+    "Jingxiang Lin",
+    "Tanitpong"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/ilufang/uiuc-better-catalog",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "Polymer#^1.7.0",
+    "paper-elements": "PolymerElements/paper-elements#^1.0.7"
+  }
+}
