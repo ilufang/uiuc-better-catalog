@@ -1,19 +1,37 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="UTF-8">
-    <title>Hello World!</title>
-  </head>
-  <body>
-    <h1>Hello World!</h1>
-    <!-- All of the Node.js APIs are available in this renderer process. -->
-    We are using node <script>document.write(process.versions.node)</script>,
-    Chromium <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
-  </body>
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+	<title>UIUC Improved Catalog</title>
 
-  <script>
-    // You can also require other files to run in this process
-    require('./renderer.js')
-  </script>
+	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+
+	<link rel="import" type="text/html" href="components/uiuc-course-detail/uiuc-course-detail.html" />
+
+	<link rel="import" type="text/html" href="bower_components/paper-card/paper-card.html" />
+	<link rel="import" type="text/html" href="bower_components/paper-input/paper-input.html" />
+
+	<style type="text/css">
+	body {
+		padding: 1em;
+		background-color: #eee;
+	}
+	paper-card.top {
+		padding: 1em;
+		margin: 1em;
+		display: block;
+	}
+	</style>
+</head>
+<body>
+	<template is="dom-bind">
+		<paper-card class="top">
+			<paper-input label="Course Number" value="{{course}}"></paper-input>
+		</paper-card>
+		<paper-card class="top">
+			<uiuc-course-detail course="{{course}}"></uiuc-course-detail>
+		</paper-card>
+	</template>
+</body>
 </html>
