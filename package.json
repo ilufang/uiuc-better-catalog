@@ -10,8 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/ilufang/uiuc-better-catalog.git"
   },
-  "keywords": [
-  ],
+  "keywords": [],
   "author": "GitHub",
   "license": "MIT",
   "bugs": {
@@ -20,5 +19,7 @@
   "homepage": "https://github.com/ilufang/uiuc-better-catalog",
   "devDependencies": {
     "electron": "^1.3.4"
+  },
+  "dependencies": {
   }
 }
