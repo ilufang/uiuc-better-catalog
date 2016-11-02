@@ -1,45 +1,8 @@
-<!DOCTYPE html>
 <html>
 <head>
-	<meta charset="utf-8" />
-	<meta name="viewport" content="width=device-width, initial-scale=1" />
-	<title>UIUC Improved Catalog</title>
-
-	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-
-	<link rel="import" type="text/html" href="components/uiuc-course-detail/uiuc-course-detail.html" />
-
-	<link rel="import" type="text/html" href="bower_components/paper-card/paper-card.html" />
-	<link rel="import" type="text/html" href="bower_components/paper-input/paper-input.html" />
-
-	<style type="text/css">
-	body {
-		padding: 1em;
-		background-color: #eee;
-	}
-	paper-card.top {
-		padding: 1em;
-		margin: 1em;
-		display: block;
-	}
-	</style>
+    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+    <link href="elements/registration-app.html" rel="import">
 </head>
-<body>
-	<template is="dom-bind">
-		<paper-card class="top">
-			<paper-input label="Course Number" value="{{course}}"></paper-input>
-		</paper-card>
-		<paper-card class="top">
-			<uiuc-course-detail course="{{course}}"></uiuc-course-detail>
-		</paper-card>
-		<script type="text/javascript">
-		Course = require('course');
-		Course.fromURL("https://courses.illinois.edu/schedule/DEFAULT/DEFAULT/ENG/198").then((data) => {
-			window.eng = data;
-			console.log("Loaded ENG 198 as an example. See below or type 'eng' in console to see the object");
-			console.log(data);
-		});
-		</script>
-	</template>
+<body fullbleed unresolved>
+    <registration-app></registration-app>
 </body>
-</html>
