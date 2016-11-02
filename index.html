@@ -34,7 +34,7 @@
 		</paper-card>
 		<script type="text/javascript">
 		Course = require('course');
-		Course.fromURL("https://courses.illinois.edu/schedule/DEFAULT/DEFAULT/ENG/198").then(data => {
+		Course.fromURL("https://courses.illinois.edu/schedule/DEFAULT/DEFAULT/ENG/198").then((data) => {
 			window.eng = data;
 			console.log("Loaded ENG 198 as an example. See below or type 'eng' in console to see the object");
 			console.log(data);
