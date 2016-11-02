@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="import" href="../bower_components/polymer/polymer.html">
+  <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+  <link rel="import" href="../bower_components/paper-item/paper-item.html">
+
+</head>
+<style is="custom-style">
+:root{
+  paper-toolbar{
+    --paper-toolbar-title:{
+      font-size:20pt;
+      height:auto;
+    };
+  }
+}
+.title_description{
+
+}
+}
+</style>
+
+<dom-module id="main-window-description">
+  <template>
+    <paper-header-panel mode="waterfall">
+      <paper-toolbar class="tall">
+        <span class="title title_description">ENGINEERINGtest</span>
+        <span class="middle title title_code">ECE120</span>
+        <span class="bottom title">Introduction to Computer Engineering</span>
+      </paper-toolbar>
+      <div class="content fit">
+        This is a content <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+      </div>
+    </paper-header-panel>
+  </template>
+  <script>
+  Polymer({
+    is: "main-window-description",
+    properties: {
+
+    },
+    ready: function(e){
+
+    }
+  });
+  </script>
+
+</dom-module>
+</html>
