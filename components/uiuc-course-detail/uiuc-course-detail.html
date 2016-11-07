@@ -1,0 +1,67 @@
+<link rel="import" type="text/html" href="../../bower_components/polymer/polymer.html" />
+
+<script type="text/javascript">
+var db = require("coursedb");
+</script>
+
+<dom-module id="uiuc-course-detail">
+	<template>
+		<style type="text/css">
+
+		</style>
+		<h1>[[name]]</h1>
+		<h3><span>[[dept]]</span> <a href="[[url]]" target="_blank">[[course]]</a></h3>
+		<strong style="color:red">[[credit]]</strong>
+		<p>[[description]]</p>
+		<p>[[condition]]</p>
+	</template>
+	<script type="text/javascript">
+	Polymer({
+		is: "uiuc-course-detail",
+		properties: {
+			course: {
+				type: String,
+				notify: true,
+				reflectToAttribute: true,
+				observer: "courseChanged"
+			},
+			name: String,
+			dept: String,
+			description: String,
+			credit: String,
+			condition: String,
+			url: String
+		},
+		ready: function() {
+			this.courseChanged();
+		},
+		courseChanged: function(course, old_course) {
+			if (!course) {
+				course = this.course;
+			} else {
+				if (db.parseId(course) == db.parseId(old_course)) {
+					return;
+				}
+			}
+			// TODO: database adaption
+			var course = db.getCourseByNumber(course);
+			if (course) {
+				this.course = course.wiki_id;
+				this.name = course.name;
+				this.dept = db.db.deptNames[db.db.depts[course.category]];
+				this.description = course.detail;
+				this.condition = course.condition;
+				this.credit = course.reward_other;
+				this.url = course.url;
+			} else {
+				this.name = "Not Found";
+				this.dept = "";
+				this.description = "";
+				this.condition = "";
+				this.credit = "";
+				this.url = "#";
+			}
+		}
+	});
+	</script>
+</dom-module>
