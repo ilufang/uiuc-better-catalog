@@ -2,3 +2,4 @@ bower_components/*
 data
 .DS_Store
 ._*
+data/
