@@ -1,37 +1,196 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="import" href="../bower_components/polymer/polymer.html">
-  <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
-</head>
-<style is="custom-style">
-:root{
-  paper-tabs{
-    --paper-tabs-selection-bar-color:var(--paper-orange-400);
-    --paper-tabs:{
-      color:#ffffff;
-      background:var(--paper-indigo-400);
-    }
-  }
-}
-</style>
+	<link rel="import" href="../bower_components/polymer/polymer.html">
+	<link rel="import" href="../bower_components/paper-input/paper-input.html">
+	<link rel="import" href="../bower_components/paper-material/paper-material.html">
+	<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+	<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+	<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 
+	<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+</head>
+
+<dom-module id="sidebar-search-result-cell">
+	<template>
+		<style type="text/css">
+		:host {
+			display: block;
+			position: relative;
+			margin: 0px;
+			padding: 0px;
+			cursor: pointer;
+			font-family: sans-serif;
+			border-top: 1px solid #ccc;
+			background: #fff;
+			transition: background 0.2s;
+			user-select: none;
+			-webkit-user-select: none;
+		};
+		:host:hover {
+			background-color: #eee;
+		}
+		strong#caption {
+			font-size: 1.2em;
+			margin-bottom: 0.3em;
+		}
+		p#content {
+			color: #666;
+			margin: 0px;
+		}
+		</style>
+		<div style="padding: 0.8em" id="main">
+			<strong id='caption'>{{caption}}</strong>
+			<p id='content'></p>
+		</div>
+		<paper-ripple id="ripple"></paper-ripple>
+	</template>
+	<script type="text/javascript">
+	Polymer({
+		is: "sidebar-search-result-cell",
+		properties: {
+			caption: {
+				type: String,
+				reflectToAttribute: true
+			},
+			description: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setContent"
+			},
+			owner: Object,
+			disabled: {
+				type: Boolean,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "disableElement"
+			}
+		},
+		setContent: function(content) {
+			this.$.content.innerHTML = content;
+		},
+		ready: function(e) {
+			this.$.main.addEventListener("click", (function(e){
+				if (this.owner) {
+					this.owner.search(this.caption);
+				}
+			}).bind(this)) ;
+		}
+	});
+	</script>
+</dom-module>
 
 <dom-module id="sidebar-element-browse">
-  <template>
-    browse here
-  </template>
-  <script>
-  Polymer({
-    is: "sidebar-element-browse",
-    properties: {
+	<template>
+		<style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+		<style type="text/css">
+		:host {
+			height: 100%;
+		}
+		#main {
+			height: 100%;
+		}
+		#main>paper-material {
+			z-index: 100;
+		}
+		#results {
+			overflow: auto;
+		}
+		paper-input {
+			--paper-input-container-color: rgba(0,0,0,0,0);
+			--paper-input-container-focus-color: rgba(0,0,0,0,0);
+		}
+		#searchbox_btn {
+			--paper-icon-button-disabled-text: #000;
+		}
+		form {
+			margin: 0px;
+			padding: 0px;
+		}
+		</style>
+		<div class="layout vertical" id="main">
+			<paper-material>
+				<form id="searchbox_form">
+					<paper-input no-label-float placeholder="Search anything..." value="{{searchword}}" id="searchbox_input">
+						<paper-icon-button icon="search" prefix disabled id="searchbox_btn"></paper-icon-button>
+					</paper-input>
+				</form>
+			</paper-material>
+			<div id="results" class="flex">
+			</div>
+			<br /><br />
+		</div>
+	</template>
+	<script>
+	Polymer({
+		is: "sidebar-element-browse",
+		properties: {
+			searchword: {
+				type: String,
+				notify: true,
+				reflectToAttribute: true,
+				observer: "search"
+			},
+			selectedresult: {
+				type: String,
+				reflectToAttribute: true,
+				readOnly: true
+			},
+			locked: Boolean
+		},
+		ready: function(e) {
+			this.$.searchbox_form.addEventListener("submit", (function(e) {
+				e.preventDefault();
+				if (this.searchword.trim().length > 0) {
+					this.locked = true;
+					this.$.searchbox_input.inputElement.readOnly = true;
+					this.$.searchbox_btn.icon = "arrow-back";
+					this.$.searchbox_btn.disabled = false;
+					this.search();
+				}
+			}).bind(this));
+			this.$.searchbox_btn.addEventListener("click", (function(e) {
+				this.$.searchbox_input.inputElement.readOnly = false;
+				this.searchword = "";
+				this.$.searchbox_btn.icon = "search";
+				this.$.searchbox_btn.disabled = true;
+				this.locked = false;
+			}).bind(this));
+			this.search("");
+		},
+		search: function(key) {
+			if (!key) {
+				key = this.searchword;
+			} else if (!this.locked) {
+				this.searchword = key;
+			}
+			if (key.trim().length == 0) {
+				return this.populateDepts();
+			}
+			// Perform search
 
-    },
-    ready: function(e){
+		},
+		populateDepts: function() {
+			this.$.results.innerHTML = '';
+			for (dept_code in catalog.courses) {
+				var dept = catalog.courses[dept_code];
+				var cell = document.createElement('sidebar-search-result-cell');
+				cell.caption = dept_code;
+				var course_count = -1; // Exclude the `name` property
+				for (course in dept)
+					++course_count;
+				var description = `${dept.name}<br />\n${course_count} course`;
+				if (course_count > 1)
+					description += 's'; // Plural
+				cell.description = description;
 
-    }
-  });
-  </script>
+				this.$.results.appendChild(cell);
+			}
+		}
+
+	});
+	</script>
 
 </dom-module>
 </html>
