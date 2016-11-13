@@ -50,7 +50,7 @@ function generateCourseCell(course) {
 		}
 		</style>
 		<div style="padding: 0.8em" id="main">
-			<strong id='caption'>{{caption}}</strong>
+			<strong id='caption'>[[caption]]</strong>
 			<p id='content'></p>
 		</div>
 		<paper-ripple id="ripple"></paper-ripple>
@@ -83,7 +83,7 @@ function generateCourseCell(course) {
 		ready: function(e) {
 			this.$.main.addEventListener("click", (function(e){
 				if (this.owner) {
-					this.owner.search(this.caption);
+					this.owner.search(this.caption, "jump");
 				}
 			}).bind(this)) ;
 		}
@@ -140,26 +140,27 @@ function generateCourseCell(course) {
 				type: String,
 				notify: true,
 				reflectToAttribute: true,
-				observer: "search"
+				observer: "inputChanged"
 			},
 			selectedresult: {
 				type: String,
 				reflectToAttribute: true,
 				readOnly: true
 			},
-			locked: Boolean,
-			searchTime: Number // Debugging only
+			locked: Boolean // Unused
 		},
 		ready: function(e) {
 			this.$.searchbox_form.addEventListener("submit", (function(e) {
 				e.preventDefault();
+				/*
 				if (this.searchword.trim().length > 0) {
 					this.locked = true;
 					this.$.searchbox_input.inputElement.readOnly = true;
-					this.$.searchbox_btn.icon = "arrow-back";
+					this.$.searchbox_btn.icon = "clear";
 					this.$.searchbox_btn.disabled = false;
 					this.search();
 				}
+				*/
 			}).bind(this));
 			this.$.searchbox_btn.addEventListener("click", (function(e) {
 				this.$.searchbox_input.inputElement.readOnly = false;
@@ -168,20 +169,26 @@ function generateCourseCell(course) {
 				this.$.searchbox_btn.disabled = true;
 				this.locked = false;
 			}).bind(this));
-			this.search("");
 		},
-		search: function(key) {
-			var starttime = new Date().getTime();
-			if (!key) {
-				key = this.searchword;
-			} else if (!this.locked) {
-				this.searchword = key;
-			} else {
-				if (catalog.getCourse(key)) {
-					this.fire('course-selected', {code: key});
+		inputChanged: function(value, prev) {
+			// Force search
+			if (value != prev) {
+				this.search(value.trim(), 'input');
+			}
+		},
+		search: function(key, src) {
+			if (catalog.getCourse(key)) {
+				console.log(`Fired ${key}`);
+				this.fire('course-select', {code: key});
+				if (src == 'jump') {
+					return;
 				}
 			}
-			if (key.trim().length == 0) {
+			if (this.searchword != key) {
+				this.searchword = key;
+				return;
+			}
+			if (key.length == 0) {
 				this.populateDepts();
 			} else if (catalog.courses[key.toUpperCase()]) {
 				this.populateDept(key.toUpperCase());
@@ -194,8 +201,6 @@ function generateCourseCell(course) {
 			} else {
 				// Perform search
 			}
-			var endtime = new Date().getTime();
-			this.searchtime = endtime-starttime;
 		},
 		populateDepts: function() {
 			this.$.results.innerHTML = '';

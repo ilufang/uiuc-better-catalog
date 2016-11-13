@@ -1,50 +1,108 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="import" href="../bower_components/polymer/polymer.html">
-  <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
-  <link rel="import" href="../bower_components/paper-item/paper-item.html">
+	<link rel="import" href="../bower_components/polymer/polymer.html">
+	<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+	<link rel="import" href="../bower_components/paper-item/paper-item.html">
 
 </head>
 <style is="custom-style">
 :root{
-  paper-toolbar{
-    --paper-toolbar-title:{
-      font-size:20pt;
-      height:auto;
-    };
-  }
-}
-.title_description{
-
-}
+	paper-toolbar{
+		--paper-toolbar-title:{
+			font-size:20pt;
+			height:auto;
+		};
+	}
 }
 </style>
 
 <dom-module id="main-window-description">
-  <template>
-    <paper-header-panel mode="waterfall">
-      <paper-toolbar class="tall">
-        <span class="title title_description">ENGINEERINGtest</span>
-        <span class="middle title title_code">ECE120</span>
-        <span class="bottom title">Introduction to Computer Engineering</span>
-      </paper-toolbar>
-      <div class="content fit">
-        This is a content <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-      </div>
-    </paper-header-panel>
-  </template>
-  <script>
-  Polymer({
-    is: "main-window-description",
-    properties: {
+	<template>
+		<style type="text/css">
+			:host {
+				font-family: sans-serif;
+			}
+			#toolbar-title {
+				margin-left: 0px;
+				font-weight: bold;
+			}
+			#description {
+				font-size: 1.2em;
+			}
+			#container {
+				margin: 1em;
+			}
+		</style>
+		<paper-header-panel mode="waterfall" shadow>
+			<paper-toolbar class="tall" id="header-toolbar">
+				<span class="middle" id="toolbar-sub"></span>
+				<span class="bottom title" id="toolbar-title">[[name]]</span>
+			</paper-toolbar>
+			<div style="display: none" id="container">
+				<strong style="color:#00f">[[credit]]</strong>
+				<p class="content fit" id="description"></p>
+				<hr />
+				<div class="content fit" id="requirements"></div>
+			</div>
+		</paper-header-panel>
+	</template>
+	<script>
+	Polymer({
+		is: "main-window-description",
+		properties: {
+			course: {
+				type: String,
+				notify: true,
+				reflectToAttribute: true,
+				observer: "setCourse"
+			},
+			dept: String,
+			credit: String,
+			name: {
+				type: String,
+				value: "UIUC Improved Course Explorer"
+			}
+		},
+		ready: function(e){
+		},
+		setCourse: function(code, prev) {
+			if (code == prev) {
+				return;
+			}
+			var course = catalog.getCourse(code);
+			if (!course) {
+				return;
+			}
 
-    },
-    ready: function(e){
+			this.$.container.style.display = '';
 
-    }
-  });
-  </script>
+			this.dept = catalog.courses[course.dept].name;
+			this.name = course.title;
+			this.$['toolbar-sub'].innerText = course.dept + ' ' + course.number + ' | ' + this.dept;
+			this.$.description.innerHTML = course.description;
+			this.$.description.querySelectorAll("a").forEach((a_course, idx, arr) => {
+				arr[idx].href="#";
+				a_course.addEventListener("click", (function() {
+					this.course = a_course.innerText;
+				}).bind(this));
+			});
+
+			this.$.requirements.innerHTML='';
+			course.requirements.raw.forEach((line) => {
+				this.$.requirements.innerHTML += "<p>"+line+"</p>\n";
+			});
+			this.$.requirements.querySelectorAll("a").forEach((a_course, idx, arr) => {
+				arr[idx].href="#";
+				a_course.addEventListener("click", (function() {
+					this.course = a_course.innerText;
+				}).bind(this));
+			});
+			this.credit = course.getCredit();
+
+		}
+	});
+	</script>
 
 </dom-module>
 </html>
