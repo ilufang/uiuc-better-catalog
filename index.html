@@ -1,12 +1,20 @@
 <html>
 <head>
-    <script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-    <link href="elements/registration-app.html" rel="import">
-    <script type="text/javascript">
-    Catalog = require('catalog');
-    window.catalog = Catalog.fromLocalStorage(); // TODO
-    </script>
+	<title>Better Course Explorer</title>
+	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+	<link href="elements/registration-app.html" rel="import">
+	<script type="text/javascript">
+	console.log("Main frame loaded.");
+	Catalog = require('catalog');
+	if (!localStorage.getItem('index')) {
+		location.assign('data-helper.html#autorestore');
+	} else {
+		console.log("Loading catalog...");
+		window.catalog = Catalog.fromLocalStorage(); // TODO
+		console.log("Catalog loaded.");
+	}
+	</script>
 </head>
 <body fullbleed unresolved>
-    <registration-app></registration-app>
+	<registration-app></registration-app>
 </body>

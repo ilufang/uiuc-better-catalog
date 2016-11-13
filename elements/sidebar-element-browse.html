@@ -11,6 +11,16 @@
 	<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 </head>
 
+<script type="text/javascript">
+function generateCourseCell(course) {
+	var cell = document.createElement('sidebar-search-result-cell');
+	cell.caption = course.code;
+	var description = `${course.title}<br><i>${course.getCredit()}</i>`;
+	cell.description = description;
+	return cell;
+}
+</script>
+
 <dom-module id="sidebar-search-result-cell">
 	<template>
 		<style type="text/css">
@@ -137,7 +147,8 @@
 				reflectToAttribute: true,
 				readOnly: true
 			},
-			locked: Boolean
+			locked: Boolean,
+			searchTime: Number // Debugging only
 		},
 		ready: function(e) {
 			this.$.searchbox_form.addEventListener("submit", (function(e) {
@@ -160,35 +171,64 @@
 			this.search("");
 		},
 		search: function(key) {
+			var starttime = new Date().getTime();
 			if (!key) {
 				key = this.searchword;
 			} else if (!this.locked) {
 				this.searchword = key;
+			} else {
+				if (catalog.getCourse(key)) {
+					this.fire('course-selected', {code: key});
+				}
 			}
 			if (key.trim().length == 0) {
-				return this.populateDepts();
+				this.populateDepts();
+			} else if (catalog.courses[key.toUpperCase()]) {
+				this.populateDept(key.toUpperCase());
+			} else if (catalog.getCourse(key)) {
+				var course = catalog.getCourse(key);
+				this.$.results.innerHTML = '';
+				var cell = generateCourseCell(course);
+				cell.owner = this;
+				this.$.results.appendChild(cell);
+			} else {
+				// Perform search
 			}
-			// Perform search
-
+			var endtime = new Date().getTime();
+			this.searchtime = endtime-starttime;
 		},
 		populateDepts: function() {
 			this.$.results.innerHTML = '';
-			for (dept_code in catalog.courses) {
+			for (var dept_code in catalog.courses) {
 				var dept = catalog.courses[dept_code];
 				var cell = document.createElement('sidebar-search-result-cell');
 				cell.caption = dept_code;
+				/*
 				var course_count = -1; // Exclude the `name` property
 				for (course in dept)
 					++course_count;
 				var description = `${dept.name}<br />\n${course_count} course`;
 				if (course_count > 1)
 					description += 's'; // Plural
-				cell.description = description;
-
+				*/
+				cell.description = dept.name;
+				cell.owner = this;
+				this.$.results.appendChild(cell);
+			}
+		},
+		populateDept: function(dept) {
+			this.$.results.innerHTML = '';
+			for (var course_no in catalog.courses[dept]) {
+				var course = catalog.courses[dept][course_no];
+				if (!course.code) {
+					// Skip the name property
+					continue;
+				}
+				var cell = generateCourseCell(course);
+				cell.owner = this;
 				this.$.results.appendChild(cell);
 			}
 		}
-
 	});
 	</script>
 
