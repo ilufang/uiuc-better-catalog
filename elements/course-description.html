@@ -1,103 +1,83 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<script type="text/javascript">
-		Catalog = require('catalog')
-		catalog = Catalog.fromLocalStorage();
-	</script>
-	<dom-module id = "course-description">
-		<template>
-		
-			
-		
-			<style type="text/css">
+<dom-module id="course-description">
+	<template>
+		<style type="text/css">
 
-			</style>
-			<h2>[[name]]</h2>
-			<strong>[[credit]]</strong>
-			<p id="description"></p>
-			<strong>[[gened]]</strong>
-			<br>
-			<strong>[[prerequisite]]</strong>
-			
-		</template>
-		<script>
-			Polymer({
-				is:"course-description",
-				properties:{
-					course: {
-						type: String,
-						notify: true,
-						reflectToAttribute: true,
-						observer: "courseChanged"
-					},
-					name: String,
-					dept: String,
-					number: String,
-					description: String,
-					credit: String,
-					prerequisite: String,
-					gened:String
-					
+		</style>
+		<h2>[[name]]</h2>
+		<strong>[[credit]]</strong>
+		<p id="description"></p>
+		<strong>[[gened]]</strong>
+		<br>
+		<strong>[[prerequisite]]</strong>
+
+	</template>
+	<script>
+		Polymer({
+			is:"course-description",
+			properties:{
+				course: {
+					type: String,
+					notify: true,
+					reflectToAttribute: true,
+					observer: "courseChanged"
 				},
-				ready: function() {
-					this.courseChanged();
-				},
-				courseChanged: function(course){
-					if (!course)
-						course = this.course;
-					
-					var course = Catalog.parseCourseCode(course);
-					
-					
-					try{
-						this.dept = course.dept;
-						this.number = course['number'];
-						this.name = catalog['courses'][this.dept][this.number]['title'];
-						// this.description = catalog['courses'][this.dept][this.number]['description'];
-						this.$.description.innerHTML = catalog['courses'][this.dept][this.number]['description'];
-						this.$.description.querySelectorAll("a").forEach((a_course, idx, arr) => {
-							arr[idx].href="#";
-							a_course.addEventListener("click", (function() {
-								this.course = a_course.innerText;
-							}).bind(this));
-						})
-						this.credit = 'credit: ' + catalog['courses'][this.dept][this.number]['credit'][0] + " hours";
-						this.gened = "GenEd: " + catalog['courses'][this.dept][this.number]['requirements']['gened'];
-						this.prerequisite = "Prerequisites: " +  catalog['courses'][this.dept][this.number]['requirements']['depend'];
-					}
-					catch(e){
-						this.name = "Not Applicable";
-						this.dept = "";
-						this.number = "";
-						// this.description = "";
-						this.$.description.innerHTML = "";
+				name: String,
+				dept: String,
+				number: String,
+				description: String,
+				credit: String,
+				prerequisite: String,
+				gened:String
+			},
+			ready: function() {
+				this.courseChanged();
+			},
+			courseChanged: function(course){
+				if (!course)
+					course = this.course;
 
-						this.credit = "";
-						this.gened = "";
-						this.prerequisite = ""
-					}
-						
-					
+				var course = Catalog.parseCourseCode(course);
 
+				try{
+					this.dept = course.dept;
+					this.number = course['number'];
+					this.name = catalog['courses'][this.dept][this.number]['title'];
+					// this.description = catalog['courses'][this.dept][this.number]['description'];
+					this.$.description.innerHTML = catalog['courses'][this.dept][this.number]['description'];
+					this.$.description.querySelectorAll("a").forEach((a_course, idx, arr) => {
+						arr[idx].href="#";
+						a_course.addEventListener("click", (function() {
+							this.course = a_course.innerText;
+						}).bind(this));
+					})
+					this.credit = 'credit: ' + catalog['courses'][this.dept][this.number]['credit'][0] + " hours";
+					this.gened = "GenEd: " + catalog['courses'][this.dept][this.number]['requirements']['gened'];
+					this.prerequisite = "Prerequisites: " +  catalog['courses'][this.dept][this.number]['requirements']['depend'];
+				} catch(e) {
+					this.name = "Not Applicable";
+					this.dept = "";
+					this.number = "";
+					this.$.description.innerHTML = "";
+					this.credit = "";
+					this.gened = "";
+					this.prerequisite = ""
 				}
-			});
-			// function(){
-			// 	$.ajax({
-			//   		type: "POST",
-			//   		url: "~/extratedInfo.py",
-			//   		data: { param: "CS 440"}
-			// 	}).done(function() {
-			//    	console.log(data)
-			// });
+			}
+		});
+		// function(){
+		// 	$.ajax({
+		//   		type: "POST",
+		//   		url: "~/extratedInfo.py",
+		//   		data: { param: "CS 440"}
+		// 	}).done(function() {
+		//    	console.log(data)
+		// });
 
-			
-			//var courseName = document.getElementById("course-course");
-			//Course = require('catalog')
-			//console.log(courseName)
-			//console.log(Course.fromLocalStorage().courses['CS']['126']['description'])
-				
-		</script>
-	</dom-module>
-</head>
-</html>>
+
+		//var courseName = document.getElementById("course-course");
+		//Course = require('catalog')
+		//console.log(courseName)
+		//console.log(Course.fromLocalStorage().courses['CS']['126']['description'])
+
+	</script>
+</dom-module>

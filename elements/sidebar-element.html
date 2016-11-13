@@ -1,56 +1,59 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <link rel="import" href="../bower_components/polymer/polymer.html">
-  <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
-  <link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
-  <link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-  <link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
-  <link rel="import" href="sidebar-element-browse.html">
-  <link rel="import" href="sidebar-element-bookmark.html">
+	<link rel="import" href="../bower_components/polymer/polymer.html">
+	<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+	<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+	<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+	<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+	<link rel="import" href="sidebar-element-browse.html">
+	<link rel="import" href="sidebar-element-bookmark.html">
 </head>
 <style is="custom-style">
 :root{
-  paper-tabs{
-    --paper-tabs-selection-bar-color:var(--paper-orange-400);
-    --paper-tabs:{
-      color:#ffffff;
-      background:var(--paper-indigo-400);
-    }
-  }
+	paper-tabs {
+		--paper-tabs-selection-bar-color:var(--paper-orange-400);
+		--paper-tabs: {
+			color:#ffffff;
+			background:var(--paper-indigo-400);
+		}
+	}
 }
 </style>
 
 
 <dom-module id="sidebar-element">
-  <template>
-    <style is="custom-style" include="iron-flex iron-flex-alignment"></style>
-
-    <div class="layout vertical" style="height:100%">
-      <paper-tabs selected="{{selected}}">
-        <paper-tab>Look for a course</paper-tab>
-        <paper-tab>Put course in timetable</paper-tab>
-      </paper-tabs>
-      <iron-pages selected="{{selected}}" class="flex">
-          <sidebar-element-browse></sidebar-element-browse>
-          <sidebar-element-bookmark></sidebar-element-bookmark>
-      </iron-pages>
-    </div>
-  </template>
-  <script>
-  Polymer({
-    is: "sidebar-element",
-    properties: {
-      selected: {
-        type: Number,
-        value:0
-      }
-    },
-    ready: function(e){
-
-    }
-  });
-  </script>
+	<template>
+		<style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+		<style type="text/css">
+		iron-pages {
+			display: flex;
+		}
+		</style>
+		<div class="layout vertical" style="height:100%">
+			<paper-tabs selected="{{selected}}">
+				<paper-tab>Search</paper-tab>
+				<paper-tab>Bookmarks</paper-tab>
+			</paper-tabs>
+			<iron-pages selected="{{selected}}" class="layout vertical">
+				<sidebar-element-browse></sidebar-element-browse>
+				<sidebar-element-bookmark></sidebar-element-bookmark>
+			</iron-pages>
+		</div>
+	</template>
+	<script>
+	Polymer({
+		is: "sidebar-element",
+		properties: {
+			selected: {
+				type: Number,
+				value:0
+			}
+		},
+		ready: function(e){
+		}
+	});
+	</script>
 
 </dom-module>
 </html>
