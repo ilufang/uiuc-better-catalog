@@ -115,7 +115,7 @@ function printTime(obj) {
 			seclist.forEach((section) => {
 				var secblock = document.createElement("main-section-detail");
 				secblock.section = section;
-				if (section.status.code == 3)
+				if (section.status.code >= 3)
 					closed_sections.push(secblock);
 				else
 				this.$.container.appendChild(secblock);
