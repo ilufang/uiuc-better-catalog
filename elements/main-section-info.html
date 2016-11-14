@@ -109,9 +109,18 @@ function printTime(obj) {
 			var seclist = course.sections[this.type];
 			if (!seclist)
 				return false;
+
+			// Separate out closed sections
+			var closed_sections = [];
 			seclist.forEach((section) => {
 				var secblock = document.createElement("main-section-detail");
 				secblock.section = section;
+				if (section.status.code == 3)
+					closed_sections.push(secblock);
+				else
+				this.$.container.appendChild(secblock);
+			});
+			closed_sections.forEach((secblock) => {
 				this.$.container.appendChild(secblock);
 			});
 		}

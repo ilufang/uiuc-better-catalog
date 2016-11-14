@@ -31,9 +31,18 @@
 			#container {
 				margin: 1em;
 			}
+			#sync {
+				opacity: 0.6;
+				transform: scale(0.6,0.6);
+				transform-origin: left top;
+			}
 		</style>
 		<paper-header-panel mode="waterfall" shadow>
 			<paper-toolbar class="tall" id="header-toolbar">
+				<span class="top" id="sync">
+					<iron-icon icon="[[syncicon]]"></iron-icon>
+					<i id="syncstatus">[[syncstatus]]</i>
+				</span>
 				<span class="middle" id="toolbar-sub"></span>
 				<span class="bottom title" id="toolbar-title">[[name]]</span>
 			</paper-toolbar>
@@ -57,12 +66,16 @@
 				reflectToAttribute: true,
 				observer: "setCourse"
 			},
+			courseobj: Object,
 			dept: String,
 			credit: String,
 			name: {
 				type: String,
 				value: "UIUC Improved Course Explorer"
-			}
+			},
+			sync: String,
+			syncicon: String,
+			syncstatus: String
 		},
 		ready: function(e){
 		},
@@ -74,7 +87,39 @@
 			if (!course) {
 				return;
 			}
+			if (this.courseobj && this.courseobj.code == course.code) {
+				return;
+			}
 
+			this.inflateCourse(course, 'setCourse');
+
+			// Trigger auto-sync
+			if (this.sync != course.code) {
+				this.sync = course.code;
+				this.syncicon = 'cloud-queue';
+				this.syncstatus = 'Updating...';
+				catalog.update(code).then(((data) => {
+					this.inflateCourse(data, 'update');
+				}).bind(this), (err) => {
+					console.error(err);
+					this.sync = 'err';
+					this.syncicon = 'error';
+					this.syncstatus = err;
+				});
+			}
+		},
+		inflateCourse: function(course, src) {
+			if (src=='update') {
+				if (course.code != this.courseobj.code) {
+					// Outdated update, do not inflate
+					console.warn(course.code + '!=' + this.course);
+					return;
+				}
+				this.sync = '';
+				this.syncicon = 'cloud-done';
+				this.syncstatus = 'Up to date!';
+			}
+			this.courseobj = course;
 			this.$.container.style.display = '';
 
 			this.dept = catalog.courses[course.dept].name;
