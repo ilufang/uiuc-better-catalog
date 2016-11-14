@@ -282,7 +282,7 @@ function printTime(obj) {
 
 				var cell_time = document.createElement('td');
 				try {
-					cell_time.innerText = printTime(meet.time[0]) + " - " + printTime(meet.time[1]);
+					cell_time.innerText = meet.day.join('') + ' ' + printTime(meet.time[0]) + " - " + printTime(meet.time[1]);
 				} catch(e) {
 					cell_time.innerText = "N/A";
 				}
