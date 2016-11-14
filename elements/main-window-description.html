@@ -1,11 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<link rel="import" href="../bower_components/polymer/polymer.html">
-	<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
-	<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
 
-</head>
+<link rel="import" href="main-section-info.html">
+
 <style is="custom-style">
 :root{
 	paper-toolbar{
@@ -44,6 +42,8 @@
 				<p class="content fit" id="description"></p>
 				<hr />
 				<div class="content fit" id="requirements"></div>
+				<hr />
+				<div class="content fit" id="sections"></div>
 			</div>
 		</paper-header-panel>
 	</template>
@@ -100,6 +100,14 @@
 			});
 			this.credit = course.getCredit();
 
+			// Inflate sections
+			this.$.sections.innerHTML = '';
+			for (var type in course.sections) {
+				var secblock = document.createElement("main-section-group");
+				secblock.course = course.code;
+				secblock.type = type;
+				this.$.sections.appendChild(secblock);
+			}
 		}
 	});
 	</script>

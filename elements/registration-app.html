@@ -22,39 +22,38 @@
 
 <dom-module id="registration-app">
 	<template>
-			<style is="custom-style" include="iron-flex iron-flex-alignment"></style>
-			<style>
-			#drawer_content{
-				width:100%;
-				height:100%;
-				background-color: #cacaca;
-			}
-			</style>
-			<paper-drawer-panel right-drawer drawer-width="350px">
-				<div main class="fullbleed layout vertical">
-					<main-window-description id="course"></main-window-description>
-					<!-- <course-description id="course"></course-description> -->
-				</div>
-				<paper-material drawer elevation="3" class="layout fullbleed vertical">
-					<sidebar-element id="sidebar" class="flex">
-					</sidebar-element>
-				</paper-material>
-			</paper-drawer-panel>
-		</template>
+		<style is="custom-style" include="iron-flex iron-flex-alignment"></style>
+		<style>
+		#drawer_content{
+			width:100%;
+			height:100%;
+			background-color: #cacaca;
+		}
+		</style>
+		<paper-drawer-panel right-drawer drawer-width="350px">
+			<div main class="fullbleed layout vertical">
+				<main-window-description id="course"></main-window-description>
+				<!-- <course-description id="course"></course-description> -->
+			</div>
+			<paper-material drawer elevation="3" class="layout fullbleed vertical">
+				<sidebar-element id="sidebar" class="flex">
+				</sidebar-element>
+			</paper-material>
+		</paper-drawer-panel>
+	</template>
 
-		<script>
-		Polymer({
-			is: "registration-app",
-			properties: {
+	<script>
+	Polymer({
+		is: "registration-app",
+		properties: {
 
-			},
-			ready: function(e) {
-				this.$.sidebar.addEventListener('course-select', (e) => {
-					console.log(`App caught: ${e.detail.code}`);
-					this.$.course.course = e.detail.code;
-				});
-			}
-		});
-		</script>
-	</dom-module>
+		},
+		ready: function(e) {
+			this.$.sidebar.addEventListener('course-select', (e) => {
+				this.$.course.course = e.detail.code;
+			});
+		}
+	});
+	</script>
+</dom-module>
 </html>

@@ -178,7 +178,6 @@ function generateCourseCell(course) {
 		},
 		search: function(key, src) {
 			if (catalog.getCourse(key)) {
-				console.log(`Fired ${key}`);
 				this.fire('course-select', {code: key});
 				if (src == 'jump') {
 					return;

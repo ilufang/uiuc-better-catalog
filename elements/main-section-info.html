@@ -1,0 +1,299 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+
+<script type="text/javascript">
+function printTime(obj) {
+	if (!obj || obj.h == null || obj.m == null || obj.s == null) {
+		console.warn(obj);
+		throw obj;
+	}
+	var h = obj.h, m = obj.m, s = obj.s;
+	if (h < 10) h = '0' + h;
+	if (m < 10) m = '0' + m;
+	if (s < 10) s = '0' + s;
+	return h+":"+m;
+}
+</script>
+
+<dom-module id="main-section-group">
+	<template>
+		<style type="text/css">
+		#card {
+			padding: 0.4em 1.6em;
+			margin: 1em 0px;
+			background: var(--paper-indigo-400);
+			color: #fff;
+			/*transition: height 0.5s;*/
+			cursor: pointer;
+			user-select: none;
+			-webkit-user-select: none;
+		}
+		#caption {
+			display: inline-block;
+		}
+		#listtype {
+			float: right;
+		}
+		#cascade {
+			transition: transform 0.5s;
+		}
+		#container {
+			transition: height 0.5s;
+			overflow: auto;
+			top: 0px;
+			left: 0px;
+			width: 100%;
+		}
+		</style>
+		<paper-material id="card">
+			<div id="header">
+				<paper-icon-button id="cascade" icon="expand-more"></paper-icon-button>
+				<h3 id="caption">[[type]]</h3>
+				<paper-icon-button id="listtype" icon="list"></paper-icon-button>
+			</div>
+			<paper-ripple></paper-ripple>
+			<div id="container" style="height:0px"></div>
+		</paper-material>
+	</template>
+	<script type="text/javascript">
+	Polymer({
+		is: "main-section-group",
+		properties: {
+			course: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setSectionGroup"
+			},
+			type: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setSectionGroup"
+			},
+			contentsHidden: {
+				type: Boolean,
+				value: true
+			},
+			calendarView: {
+				type: Boolean,
+				value: false
+			}
+		},
+		listeners: {
+			down: "toggleContents"
+		},
+		ready: function() {
+			this.listen(this.$.listtype, 'down', 'toggleListType');
+		},
+		toggleListType: function(e) {
+			e.stopPropagation();
+		},
+		toggleContents: function() {
+			this.contentsHidden = !this.contentsHidden;
+			if (this.contentsHidden) {
+				this.$.container.style.height = '0px';
+				this.$.cascade.style.transform = '';
+			} else {
+				this.$.container.style.height = '';
+				this.$.cascade.style.transform = 'rotate(180deg)';
+			}
+		},
+		setSectionGroup: function() {
+			this.$.container.innerHTML = '';
+			var course = catalog.getCourse(this.course);
+			if (!course)
+				return false;
+			var seclist = course.sections[this.type];
+			if (!seclist)
+				return false;
+			seclist.forEach((section) => {
+				var secblock = document.createElement("main-section-detail");
+				secblock.section = section;
+				this.$.container.appendChild(secblock);
+			});
+		}
+	});
+	</script>
+</dom-module>
+
+<dom-module id="main-section-detail">
+	<template>
+		<style type="text/css">
+			:host {
+				cursor: auto;
+				user-select: initial;
+				-webkit-user-select: initial;
+			}
+			#card {
+				padding: 0.6em 0.8em;
+				margin: 0.6em 0px;
+				background: #fff;
+				color: #000;
+			}
+			#caption {
+				font-size: 1.1em;
+			}
+			#status {
+				font-size: 0.9em;
+			}
+			#code {
+				float: right;
+				font-family: monospace;
+				font-weight: bold;
+				font-size: 1.2em;
+			}
+			#credit {
+				margin: 0.5em 0px;
+				font-size: 0.9em;
+				color: #00f;
+			}
+			#restrictions {
+				color: #f00;
+				font-size: 0.8em;
+			}
+			table {
+				border-collapse: collapse;
+				width: 100%;
+			}
+			thead {
+				border-bottom: solid 2px #ccc;
+				text-align: left;
+			}
+		</style>
+		<paper-material id="card">
+			<div>
+				<strong id="caption">[[title]]</strong>
+				<span id="status"><iron-icon icon="radio-button-checked"></iron-icon> [[status]]</span>
+				<span id="code">[[code]] ([[_crn]])</span>
+			</div>
+			<strong id="credit">[[credit]]</strong>
+			<p id="description"></p>
+			<p id="restrictions"></p>
+			<table>
+				<thead>
+					<tr>
+						<th width="20%">Type</th>
+						<th width="20%">Time</th>
+						<th width="30%">Location</th>
+						<th width="30%">Instructor</th>
+					</tr>
+				</thead>
+				<tbody id="meetings"></tbody>
+			</table>
+		</paper-material>
+	</template>
+	<script type="text/javascript">
+	Polymer({
+		is: "main-section-detail",
+		properties: {
+			crn: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setCRN"
+			},
+			section: {
+				type: Object,
+				notify: true,
+				observer: "setSection"
+			},
+			_crn: String,
+			code: String,
+			credit: String
+		},
+		listeners: {
+			down: 'eventAbsorber'
+		},
+		ready: function() {
+		},
+		eventAbsorber: function(e) {
+			e.stopPropagation();
+		},
+		setCRN: function(crn, prev) {
+			if (crn == prev) {
+				return;
+			}
+			this.setSection(catalog.sections[crn]);
+		},
+		setSection: function(section) {
+			this._crn = section.crn;
+			this.code = section.section;
+
+			this.status = section.status.msg;
+			switch (section.status.code) {
+				case 1:
+					// Open
+					this.$.status.style.color = '#4CAF50';
+					break;
+				case 2:
+					// Restricted
+					this.$.status.style.color = '#FF9800';
+					break;
+				case 3:
+					// Closed
+					this.$.status.style.color = '#F44336';
+					break;
+			}
+
+			this.credit = Course.getCredit(section.credit);
+
+			var description = [];
+			if (section.description)
+				description.push(section.description);
+			if (section.course_desc)
+				description.push(section.course_desc);
+			if (section.info)
+				description.push(section.info);
+			if (section.fee)
+				description.push(section.fee);
+			if (section.sectionDegreeNotes)
+				description.push(section.sectionDegreeNotes);
+			this.$.description.innerHTML = description.join("<br>");
+
+			var restriction = [];
+			if (section.restriction)
+				restriction.push(section.restriction);
+			if (section.approvalCode)
+				restriction.push(section.approvalCode);
+			if (section.corequest)
+				restriction.push(section.corequest);
+			if (section.special_approval)
+				restriction.push(section.special_approval);
+			this.$.restrictions.innerHTML = restriction.join("<br>");
+
+			this.$.meetings.innerHTML = '';
+			section.meetings.forEach((meet) => {
+				var row = document.createElement('tr');
+
+				var cell_type = document.createElement('td');
+				cell_type.innerText = meet.type;
+
+				var cell_time = document.createElement('td');
+				try {
+					cell_time.innerText = printTime(meet.time[0]) + " - " + printTime(meet.time[1]);
+				} catch(e) {
+					cell_time.innerText = "N/A";
+				}
+
+				var cell_location = document.createElement('td');
+				cell_location.innerText = meet.location;
+
+				var cell_instructor = document.createElement('td');
+				cell_instructor.innerText = meet.instructor.join("\n");
+
+				row.appendChild(cell_type);
+				row.appendChild(cell_time);
+				row.appendChild(cell_location);
+				row.appendChild(cell_instructor);
+
+				this.$.meetings.appendChild(row);
+
+				this.updateStyles();
+			});
+		}
+	});
+	</script>
+</dom-module>
