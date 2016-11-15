@@ -112,13 +112,29 @@
 			if (src=='update') {
 				if (course.code != this.courseobj.code) {
 					// Outdated update, do not inflate
-					console.warn(course.code + '!=' + this.course);
 					return;
 				}
 				this.sync = '';
 				this.syncicon = 'cloud-done';
 				this.syncstatus = 'Up to date!';
+
+				// Preserve open/close status of sections
+				var section_expanded = {};
+				this.$.sections.querySelectorAll('main-section-group').forEach((section) => {
+					section_expanded[section.type] = !section.contentsHidden;
+				});
+
 			}
+
+			// Colorize!
+			var hue = 0;
+			for (var i=0; i<course.dept.length; ++i) {
+				hue += course.dept.charCodeAt(i);
+			}
+			hue %= 20;
+			hue *= 18;
+			this.$['header-toolbar'].style.background = `hsl(${hue},100%,40%)`;
+
 			this.courseobj = course;
 			this.$.container.style.display = '';
 
@@ -151,6 +167,9 @@
 				var secblock = document.createElement("main-section-group");
 				secblock.course = course.code;
 				secblock.type = type;
+				if (src=='update' && section_expanded[type]) {
+					secblock.contentsHidden = false;
+				}
 				this.$.sections.appendChild(secblock);
 			}
 		}

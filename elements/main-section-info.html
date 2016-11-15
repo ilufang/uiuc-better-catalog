@@ -23,8 +23,7 @@ function printTime(obj) {
 		#card {
 			padding: 0.4em 1.6em;
 			margin: 1em 0px;
-			background: var(--paper-indigo-400);
-			color: #fff;
+			color: #000;
 			/*transition: height 0.5s;*/
 			cursor: pointer;
 			user-select: none;
@@ -45,6 +44,8 @@ function printTime(obj) {
 			top: 0px;
 			left: 0px;
 			width: 100%;
+			padding: 0px 1.6em;
+			margin: 0px -1.6em;
 		}
 		</style>
 		<paper-material id="card">
@@ -75,11 +76,15 @@ function printTime(obj) {
 			},
 			contentsHidden: {
 				type: Boolean,
-				value: true
+				value: true,
+				notify: true,
+				observer: "toggleContents"
 			},
 			calendarView: {
 				type: Boolean,
-				value: false
+				value: false,
+				notify: true,
+				observer: "toggleListType"
 			}
 		},
 		listeners: {
@@ -87,19 +92,33 @@ function printTime(obj) {
 		},
 		ready: function() {
 			this.listen(this.$.listtype, 'down', 'toggleListType');
+			this.listen(this.$.listtype, 'down', 'eventAbsorber');
+			this.listen(this.$.container, 'down', 'eventAbsorber');
 		},
-		toggleListType: function(e) {
-			e.stopPropagation();
+		toggleListType: function(val) {
+			if (val instanceof Event) {
+				this.calendarView = !this.calendarView;
+				return;
+			}
+			// TODO
 		},
-		toggleContents: function() {
-			this.contentsHidden = !this.contentsHidden;
-			if (this.contentsHidden) {
+		toggleContents: function(val) {
+			if (val instanceof Event) {
+				this.contentsHidden = !this.contentsHidden;
+				return;
+			}
+			if (val) {
+				// Hidden
 				this.$.container.style.height = '0px';
 				this.$.cascade.style.transform = '';
 			} else {
+				// Show
 				this.$.container.style.height = '';
 				this.$.cascade.style.transform = 'rotate(180deg)';
 			}
+		},
+		eventAbsorber: function(e) {
+			e.stopPropagation();
 		},
 		setSectionGroup: function() {
 			this.$.container.innerHTML = '';
@@ -109,6 +128,15 @@ function printTime(obj) {
 			var seclist = course.sections[this.type];
 			if (!seclist)
 				return false;
+
+			// Colorize!
+			var hue = 0;
+			for (var i=0; i<course.dept.length; ++i) {
+				hue += course.dept.charCodeAt(i);
+			}
+			hue %= 20;
+			hue *= 18;
+			this.$.card.style.background = `hsl(${hue},100%,70%)`;
 
 			// Separate out closed sections
 			var closed_sections = [];
@@ -178,7 +206,7 @@ function printTime(obj) {
 				<span id="status"><iron-icon icon="radio-button-checked"></iron-icon> [[status]]</span>
 				<span id="code">[[code]] ([[_crn]])</span>
 			</div>
-			<strong id="credit">[[credit]]</strong>
+			<strong id="credit">[[credit]]</strong> | <span>Term [[term]]</span>
 			<p id="description"></p>
 			<p id="restrictions"></p>
 			<table>
@@ -211,7 +239,8 @@ function printTime(obj) {
 			},
 			_crn: String,
 			code: String,
-			credit: String
+			credit: String,
+			term: String
 		},
 		listeners: {
 			down: 'eventAbsorber'
@@ -248,6 +277,7 @@ function printTime(obj) {
 			}
 
 			this.credit = Course.getCredit(section.credit);
+			this.term = section.term.toUpperCase();
 
 			var description = [];
 			if (section.description)
@@ -299,8 +329,6 @@ function printTime(obj) {
 				row.appendChild(cell_instructor);
 
 				this.$.meetings.appendChild(row);
-
-				this.updateStyles();
 			});
 		}
 	});
