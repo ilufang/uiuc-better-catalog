@@ -26,7 +26,7 @@ function printTime(obj) {
 			padding: 0.4em 1.6em;
 			margin: 1em 0px;
 			color: #000;
-			transition: max-height 0.5s;
+			transition: height 0.5s;
 			cursor: pointer;
 			overflow: hidden;
 			user-select: none;
@@ -100,17 +100,17 @@ function printTime(obj) {
 			}
 			if (val) {
 				// Hidden
-				this.$.card.style.maxHeight = '60px';
+				this.$.card.style.height = '60px';
 				this.$.cascade.style.transform = '';
 			} else {
 				// Show
 				if (this.$.container.clientHeight == 0) {
-					this.$.card.style.maxHeight = '72px';
+					this.$.card.style.height = '72px';
 					requestAnimationFrame((()=>{
-						this.$.card.style.maxHeight = (72+this.$.container.clientHeight) + 'px';
+						this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
 					}).bind(this));
 				} else {
-					this.$.card.style.maxHeight = (72+this.$.container.clientHeight) + 'px';
+					this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
 				}
 				this.$.cascade.style.transform = 'rotate(180deg)';
 			}
