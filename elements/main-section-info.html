@@ -2,6 +2,8 @@
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+<script type="text/javascript" src="palette.js"></script>
 
 <script type="text/javascript">
 function printTime(obj) {
@@ -32,9 +34,6 @@ function printTime(obj) {
 		#caption {
 			display: inline-block;
 		}
-		#listtype {
-			float: right;
-		}
 		#cascade {
 			transition: transform 0.5s;
 		}
@@ -52,7 +51,6 @@ function printTime(obj) {
 			<div id="header">
 				<paper-icon-button id="cascade" icon="expand-more"></paper-icon-button>
 				<h3 id="caption">[[type]]</h3>
-				<paper-icon-button id="listtype" icon="list"></paper-icon-button>
 			</div>
 			<paper-ripple></paper-ripple>
 			<div id="container" style="height:0px"></div>
@@ -79,28 +77,14 @@ function printTime(obj) {
 				value: true,
 				notify: true,
 				observer: "toggleContents"
-			},
-			calendarView: {
-				type: Boolean,
-				value: false,
-				notify: true,
-				observer: "toggleListType"
 			}
 		},
 		listeners: {
-			down: "toggleContents"
+			tap: "toggleContents"
 		},
 		ready: function() {
-			this.listen(this.$.listtype, 'down', 'toggleListType');
-			this.listen(this.$.listtype, 'down', 'eventAbsorber');
 			this.listen(this.$.container, 'down', 'eventAbsorber');
-		},
-		toggleListType: function(val) {
-			if (val instanceof Event) {
-				this.calendarView = !this.calendarView;
-				return;
-			}
-			// TODO
+			this.listen(this.$.container, 'tap', 'eventAbsorber');
 		},
 		toggleContents: function(val) {
 			if (val instanceof Event) {
@@ -130,13 +114,14 @@ function printTime(obj) {
 				return false;
 
 			// Colorize!
+			var colors = ['red','pink','purple','indigo','blue','cyan','teal','green','orange','brown'];
 			var hue = 0;
 			for (var i=0; i<course.dept.length; ++i) {
 				hue += course.dept.charCodeAt(i);
 			}
-			hue %= 20;
-			hue *= 18;
-			this.$.card.style.background = `hsl(${hue},100%,70%)`;
+			hue -= 3;
+			hue %= colors.length;
+			this.$.card.style.background = palette['--paper-'+colors[hue]+'-200'];
 
 			// Separate out closed sections
 			var closed_sections = [];
@@ -271,6 +256,7 @@ function printTime(obj) {
 					this.$.status.style.color = '#FF9800';
 					break;
 				case 3:
+				case 4:
 					// Closed
 					this.$.status.style.color = '#F44336';
 					break;

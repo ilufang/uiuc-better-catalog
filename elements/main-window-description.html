@@ -1,8 +1,11 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
 
 <link rel="import" href="main-section-info.html">
+
+<script type="text/javascript" src="palette.js"></script>
 
 <style is="custom-style">
 :root{
@@ -127,13 +130,14 @@
 			}
 
 			// Colorize!
+			var colors = ['red','pink','purple','indigo','blue','cyan','teal','green','orange','brown'];
 			var hue = 0;
 			for (var i=0; i<course.dept.length; ++i) {
 				hue += course.dept.charCodeAt(i);
 			}
-			hue %= 20;
-			hue *= 18;
-			this.$['header-toolbar'].style.background = `hsl(${hue},100%,40%)`;
+			hue -= 3;
+			hue %= colors.length;
+			this.$['header-toolbar'].style.background = palette['--paper-'+colors[hue]+'-500'];
 
 			this.courseobj = course;
 			this.$.container.style.display = '';

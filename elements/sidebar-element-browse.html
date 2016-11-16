@@ -173,7 +173,7 @@ function generateCourseCell(course) {
 		inputChanged: function(value, prev) {
 			// Force search
 			if (value != prev) {
-				this.search(value.trim(), 'input');
+				this.search(value, 'input');
 			}
 		},
 		search: function(key, src) {
