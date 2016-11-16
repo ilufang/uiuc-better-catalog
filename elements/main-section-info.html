@@ -26,8 +26,9 @@ function printTime(obj) {
 			padding: 0.4em 1.6em;
 			margin: 1em 0px;
 			color: #000;
-			/*transition: height 0.5s;*/
+			transition: max-height 0.5s;
 			cursor: pointer;
+			overflow: hidden;
 			user-select: none;
 			-webkit-user-select: none;
 		}
@@ -38,13 +39,13 @@ function printTime(obj) {
 			transition: transform 0.5s;
 		}
 		#container {
-			transition: height 0.5s;
 			overflow: auto;
 			top: 0px;
 			left: 0px;
 			width: 100%;
 			padding: 0px 1.6em;
 			margin: 0px -1.6em;
+			margin-bottom: 1.6em;
 		}
 		</style>
 		<paper-material id="card">
@@ -53,7 +54,7 @@ function printTime(obj) {
 				<h3 id="caption">[[type]]</h3>
 			</div>
 			<paper-ripple></paper-ripple>
-			<div id="container" style="height:0px"></div>
+			<div id="container"></div>
 		</paper-material>
 	</template>
 	<script type="text/javascript">
@@ -86,18 +87,31 @@ function printTime(obj) {
 			this.listen(this.$.container, 'down', 'eventAbsorber');
 			this.listen(this.$.container, 'tap', 'eventAbsorber');
 		},
-		toggleContents: function(val) {
+		toggleContents: function(val, arg) {
 			if (val instanceof Event) {
 				this.contentsHidden = !this.contentsHidden;
 				return;
 			}
+			if (arg == 'noanimation') {
+				this.$.card.style.transition = 'none';
+				setTimeout((() => {
+					this.$.card.style.transition = '';
+				}).bind(this), 500);
+			}
 			if (val) {
 				// Hidden
-				this.$.container.style.height = '0px';
+				this.$.card.style.maxHeight = '60px';
 				this.$.cascade.style.transform = '';
 			} else {
 				// Show
-				this.$.container.style.height = '';
+				if (this.$.container.clientHeight == 0) {
+					this.$.card.style.maxHeight = '72px';
+					requestAnimationFrame((()=>{
+						this.$.card.style.maxHeight = (72+this.$.container.clientHeight) + 'px';
+					}).bind(this));
+				} else {
+					this.$.card.style.maxHeight = (72+this.$.container.clientHeight) + 'px';
+				}
 				this.$.cascade.style.transform = 'rotate(180deg)';
 			}
 		},

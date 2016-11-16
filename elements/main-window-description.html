@@ -172,7 +172,7 @@
 				secblock.course = course.code;
 				secblock.type = type;
 				if (src=='update' && section_expanded[type]) {
-					secblock.contentsHidden = false;
+					secblock.toggleContents(false,'noanimation');
 				}
 				this.$.sections.appendChild(secblock);
 			}
