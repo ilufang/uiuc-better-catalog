@@ -6,11 +6,17 @@
 	<script type="text/javascript">
 	console.log("Main frame loaded.");
 	Catalog = require('catalog');
+	Bookmark = require('bookmark');
 	if (!localStorage.getItem('index')) {
 		location.assign('data-helper.html#autorestore');
 	} else {
 		console.log("Loading catalog...");
-		window.catalog = Catalog.fromLocalStorage(); // TODO
+		Catalog.inst = Catalog.fromLocalStorage(); // TODO
+		window.catalog = Catalog.inst;
+		if (!localStorage.getItem("bookmark")) {
+			localStorage.setItem("bookmark", "{}");
+		}
+		window.bookmark = Bookmark.fromStorage(localStorage);
 		console.log("Catalog loaded.");
 	}
 	</script>

@@ -30,7 +30,7 @@
 			background-color: #cacaca;
 		}
 		</style>
-		<paper-drawer-panel right-drawer drawer-width="350px">
+		<paper-drawer-panel id="main_drawer" right-drawer drawer-width="350px">
 			<div main class="fullbleed layout vertical">
 				<main-window-description id="course"></main-window-description>
 				<!-- <course-description id="course"></course-description> -->
@@ -52,6 +52,8 @@
 			this.$.sidebar.addEventListener('course-select', (e) => {
 				this.$.course.course = e.detail.code;
 			});
+			// Set z-index to force the drawer to cover favorite fab
+			this.$.main_drawer.$.drawer.style.zIndex = "10";
 		}
 	});
 	</script>

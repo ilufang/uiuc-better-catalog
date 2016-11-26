@@ -47,11 +47,16 @@ function printTime(obj) {
 			margin: 0px -1.6em;
 			margin-bottom: 1.6em;
 		}
+		#bookmark {
+			float: right;
+			margin-top: 0.5em;
+		}
 		</style>
 		<paper-material id="card">
 			<div id="header">
 				<paper-icon-button id="cascade" icon="expand-more"></paper-icon-button>
 				<h3 id="caption">[[type]]</h3>
+				<paper-icon-button id="bookmark" icon="star"></paper-icon-button>
 			</div>
 			<paper-ripple></paper-ripple>
 			<div id="container"></div>
@@ -86,6 +91,39 @@ function printTime(obj) {
 		ready: function() {
 			this.listen(this.$.container, 'down', 'eventAbsorber');
 			this.listen(this.$.container, 'tap', 'eventAbsorber');
+			this.listen(this.$.bookmark, 'down', 'eventAbsorber');
+			this.listen(this.$.bookmark, 'tap', 'bookmarkSection');
+			this.boundUpdateBookmark = this.updateBookmark.bind(this);
+		},
+		attached: function() {
+			bookmark.addListener('bookmark-changed', this.boundUpdateBookmark);
+		},
+		detached: function() {
+			bookmark.removeListener('bookmark-changed', this.boundUpdateBookmark);
+		},
+		bookmarkSection: function(e) {
+			if (e) e.stopPropagation();
+
+			if (bookmark.get(this.course, this.type) == 'all') {
+				bookmark.remove(this.course, this.type);
+			} else {
+				bookmark.add(this.course, this.type);
+			}
+		},
+		updateBookmark: function() {
+			switch(bookmark.get(this.course, this.type)) {
+				case 'all':
+					this.$.bookmark.icon = "star";
+					break;
+				case 'partial':
+					this.$.bookmark.icon = "star-half";
+					break;
+				case 'none':
+					this.$.bookmark.icon = "star-border";
+					break;
+				default:
+					console.warn("Bookmark reported unexpected value: "+bookmark.get(this.course, this.type));
+			}
 		},
 		toggleContents: function(val, arg) {
 			if (val instanceof Event) {
@@ -128,14 +166,7 @@ function printTime(obj) {
 				return false;
 
 			// Colorize!
-			var colors = ['red','pink','purple','indigo','blue','cyan','teal','green','orange','brown'];
-			var hue = 0;
-			for (var i=0; i<course.dept.length; ++i) {
-				hue += course.dept.charCodeAt(i);
-			}
-			hue -= 3;
-			hue %= colors.length;
-			this.$.card.style.background = palette['--paper-'+colors[hue]+'-200'];
+			this.$.card.style.background = palette['--paper-'+course.getColor()+'-200'];
 
 			// Separate out closed sections
 			var closed_sections = [];
@@ -150,6 +181,7 @@ function printTime(obj) {
 			closed_sections.forEach((secblock) => {
 				this.$.container.appendChild(secblock);
 			});
+			this.updateBookmark();
 		}
 	});
 	</script>
@@ -330,6 +362,8 @@ function printTime(obj) {
 
 				this.$.meetings.appendChild(row);
 			});
+
+			// this.updateBookmark();
 		}
 	});
 	</script>
