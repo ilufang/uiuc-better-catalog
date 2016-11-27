@@ -15,11 +15,10 @@
 	<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 	<link rel="import" type="text/html" href="sidebar-element.html">
-	<link rel="import" type="text/html" href="main-window-description.html">
-	<link rel="import" type="text/html" href="course-description.html">
+	<link rel="import" type="text/html" href="main-window-worksheet.html">
 </head>
 
-<dom-module id="registration-app">
+<dom-module id="registration-worksheet">
 	<template>
 		<style is="custom-style" include="iron-flex iron-flex-alignment"></style>
 		<style>
@@ -31,10 +30,9 @@
 		</style>
 		<paper-drawer-panel id="main_drawer" right-drawer drawer-width="350px">
 			<div main class="fullbleed layout vertical">
-				<main-window-description id="course"></main-window-description>
-				<!-- <course-description id="course"></course-description> -->
+				<main-window-worksheet id="course"></main-window-worksheet>
 			</div>
-			<paper-material drawer elevation="3" class="layout fullbleed vertical">
+			<paper-material drawer elevation="3" class="layout fullbleed vertical" style="z-index: 10">
 				<sidebar-element id="sidebar" class="flex">
 				</sidebar-element>
 			</paper-material>
@@ -43,7 +41,7 @@
 
 	<script>
 	Polymer({
-		is: "registration-app",
+		is: "registration-worksheet",
 		properties: {
 
 		},

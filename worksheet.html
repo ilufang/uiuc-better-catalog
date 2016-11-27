@@ -1,0 +1,26 @@
+<html>
+<head>
+	<title>Better Course Explorer</title>
+	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
+	<link href="elements/registration-worksheet.html" rel="import">
+	<script type="text/javascript">
+	console.log("Main frame loaded.");
+	Catalog = require('catalog');
+	Bookmark = require('bookmark');
+	if (!localStorage.getItem('index')) {
+		location.assign('data-helper.html#autorestore');
+	} else {
+		console.log("Loading catalog...");
+		Catalog.inst = Catalog.fromLocalStorage(); // TODO
+		window.catalog = Catalog.inst;
+		if (!localStorage.getItem("bookmark")) {
+			localStorage.setItem("bookmark", "{}");
+		}
+		window.bookmark = Bookmark.fromStorage(localStorage);
+		console.log("Catalog loaded.");
+	}
+	</script>
+</head>
+<body fullbleed unresolved>
+	<registration-worksheet></registration-worksheet>
+</body>
