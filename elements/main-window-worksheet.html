@@ -19,21 +19,46 @@
  *		- `available`: Selectable
  *		- `selected`: Selected
  *		- `conflict`: Disabled because of another selected section
- *	- courses: CRN mapped to the course code
+ *		- `disabled`: Manually disabled (reserved for future usage)
  */
 
 try {
 	var worksheet = localStorage.getItem("worksheet");
 	if (!worksheet) {
-		throw "Item does not exist in localStorage";
+		throw "Initializing worksheet";
 	}
 	worksheet = JSON.parse(worksheet);
 } catch(e) {
+	console.warn("Exception while loading worksheet from localStorage:");
+	console.warn(e);
 	worksheet = {};
 }
-var saveWorkSheet = function() {
-	localStorage.putItem("worksheet", JSON.stringify(worksheet));
+// Index CRN to course
+var crnsections = {};
+(function(){
+for (var course in bookmark.data) {
+	for (var type in bookmark.data[course]) {
+		bookmark.data[course][type].forEach((crn) => {
+			let crnobj = catalog.sections[crn];
+			crnsections[crnobj.crn] = { course, type };
+		});
+	}
 }
+window.saveWorkSheet = function() {
+	var selected = {};
+	for (var crn in worksheet) {
+		if (worksheet[crn] == "selected") {
+			selected[crn] = "selected";
+		}
+	}
+	localStorage.setItem("worksheet", JSON.stringify(selected));
+}
+for (var crn in crnsections) {
+	if (!worksheet[crn])
+		worksheet[crn] = "available";
+}
+saveWorkSheet();
+})();
 </script>
 
 <style is="custom-style">
@@ -79,7 +104,7 @@ var saveWorkSheet = function() {
 				transform: scale(0.7,0.7);
 			}
 		</style>
-		<paper-material id="container" elevation="0">
+		<paper-material id="container" elevation="0" animated>
 			<span>[[caption]]</span>
 			<paper-ripple noink="[[disabled]]"></paper-ripple>
 		</paper-material>
@@ -143,11 +168,15 @@ var saveWorkSheet = function() {
 		},
 		setSelected: function(selected) {
 			if (selected instanceof Event) {
-				this.selected = !this.selected;
-				this.fire("section-selected", {
-					selected: this.selected,
-					crn: this.crn
-				});
+				// The selection event will be processed and
+				// status updated by the worksheet
+				// this.selected = !this.selected;
+				if (!this.disabled) {
+					this.fire("section-selected", {
+						selected: !this.selected, // this.selected is not yet negated
+						crn: this.crn
+					});
+				}
 				return;
 			}
 			if (this.disabled) {
@@ -190,7 +219,7 @@ var saveWorkSheet = function() {
 			time = (parts[0]/1) + (parts[1]/60) + (parts[2]/3600);
 			time += 10/3600; // Align End
 			this._endTime = time;
-			var width = (time - this._beginTime) * 4; // 4em pixels per hour
+			var width = (time - this._beginTime) * 4; // 4em per hour
 			this.$.container.style.width = width+"4em";
 		},
 		setDept: function(dept) {
@@ -224,8 +253,20 @@ var saveWorkSheet = function() {
 				this.disabled = false;
 			}
 		},
+		tapdown: function() {
+			if (!this.disabled) {
+				this.$.container.elevation = 3;
+			}
+		},
+		tapup: function() {
+			if (!this.disabled) {
+				this.$.container.elevation = 1;
+			}
+		},
 		ready: function() {
 			this.listen(this.$.container, "tap", "setSelected");
+			this.listen(this.$.container, "down", "tapdown");
+			this.listen(this.$.container, "up", "tapup");
 		}
 	});
 	</script>
@@ -381,6 +422,9 @@ var saveWorkSheet = function() {
 				}
 				this.$["th-"+days[d]].addEventListener("click", this.hideDay.bind(this, d));
 			}
+			// Listener
+			this.addEventListener("section-selected", this.selectCRN.bind(this));
+			// Inflate contents
 			this.updateBookmark();
 		},
 		hideDay: function(d) {
@@ -416,11 +460,99 @@ var saveWorkSheet = function() {
 			}
 		},
 		selectCRN: function(e) {
-			e.detail.crn;
-			e.detail.selected;
+			var crn = e.detail.crn, selected = e.detail.selected;
+			// Reject invalid selects
+			switch(worksheet[crn]) {
+				case "conflict":
+				case "disabled":
+					console.warn("Trying to select disabled section: "+crn);
+					return;
+			}
+
+			// Clear all conflicts
+			for (var wscrn in worksheet) {
+				if (worksheet[wscrn] == 'conflict') {
+					worksheet[wscrn] = 'available';
+					document.querySelectorAll(`#tbody worksheet-section[crn="${wscrn}"]`).forEach((item) => {
+						item.disabled = false;
+					});
+				}
+			}
+			// Single selection: reset other selected crns in the current section
+			var course = crnsections[crn].course, type = crnsections[crn].type;
+			bookmark.data[course][type].forEach((bmcrn) => {
+				if (worksheet[bmcrn] == "selected") {
+					worksheet[bmcrn] = "available";
+					document.querySelectorAll(`#tbody worksheet-section[crn="${bmcrn}"]`).forEach((item) => {
+						item.selected = false;
+					});
+				}
+			});
+			// Make the selection
+			if (selected) {
+				worksheet[crn] = "selected";
+				document.querySelectorAll(`#tbody worksheet-section[crn="${crn}"]`).forEach((item) => {
+					item.selected = true;
+				});
+			}
+			// Calculate conflicts
+			for (var wscrn in worksheet) {
+				if (worksheet[wscrn] == "selected") {
+					this.setConflict(wscrn);
+				}
+			}
+			// Save
+			saveWorkSheet();
+		},
+		setConflict: function(crn) {
+			var days = "mtwrf";
+			var crnobj = catalog.sections[crn];
+			var conflictlist = [];
+			crnobj.meetings.forEach((meetobj) => {
+				var	starttime = meetobj.time[0],
+					endtime = meetobj.time[1];
+				starttime = starttime.h/1 + starttime.m/60 + starttime.s/3600;
+				endtime = endtime.h/1 + endtime.m/60 + endtime.s/3600;
+				for (var wscrn in worksheet) {
+					// Exclude sections from the same course
+					if (crnsections[crn].course == crnsections[wscrn].course &&
+						crnsections[crn].type == crnsections[wscrn].type) {
+						continue;
+					}
+					catalog.sections[wscrn].meetings.forEach((wsmeetobj) => {
+						// Exclude meetings on non-conflicting days
+						var day_conflict = false;
+						meetobj.day.forEach((d) => {
+							if (wsmeetobj.day.indexOf(d)!=-1) {
+								day_conflict = true;
+							}
+						});
+						if (!day_conflict)
+							return;
+
+						var	wsstarttime = wsmeetobj.time[0],
+							wsendtime = wsmeetobj.time[1];
+						wsstarttime = wsstarttime.h/1 + wsstarttime.m/60 + wsstarttime.s/3600;
+						wsendtime = wsendtime.h/1 + wsendtime.m/60 + wsendtime.s/3600;
+						if (wsstarttime >= starttime && wsstarttime <= endtime ||
+							wsendtime >= starttime && wsendtime <= endtime ||
+							wsstarttime <= starttime && wsendtime >= endtime) {
+							// This is a conflict
+							if (worksheet[wscrn] != "conflict" && worksheet[wscrn] != "disabled") {
+								worksheet[wscrn] = "conflict";
+								document.querySelectorAll(`#tbody worksheet-section[crn="${wscrn}"]`).forEach((item) => {
+									item.disabled = true;
+								});
+							}
+						}
+					});
+
+				};
+			});
 		},
 		updateBookmark: function() {
 			var days = "mtwrf";
+			// Create sections
 			for (var course in bookmark.data) {
 				for (var type in bookmark.data[course]) {
 					var san_course = course.replace(/ /g, '');
@@ -465,6 +597,7 @@ var saveWorkSheet = function() {
 						name_div.className = "td-name";
 						name_div.innerHTML = `<code>${crnobj.section} (${crnobj.crn})</code>`;
 						Polymer.dom(name_div).appendChild(document.createElement("paper-ripple"));
+						/*
 						name_div.addEventListener("click", ((crn)=>{
 							this.selectCRN({
 								detail: {
@@ -473,6 +606,7 @@ var saveWorkSheet = function() {
 								}
 							});
 						}).bind(this,crnobj.crn));
+						*/
 						Polymer.dom(name_cell).appendChild(name_div);
 						Polymer.dom(row).appendChild(name_cell);
 						for (var i=0; i<days.length; ++i) {
@@ -502,6 +636,7 @@ var saveWorkSheet = function() {
 								sec.end = endtime;
 								sec.dept = courseobj.dept;
 								sec.caption = crnobj.section;
+								sec.crn = crnobj.crn;
 								Polymer.dom(row.querySelector("div.td-"+day)).appendChild(sec);
 								Polymer.dom(master_tr.querySelector("div.td-"+day)).appendChild(sec.cloneNode(true));
 							});
@@ -511,6 +646,19 @@ var saveWorkSheet = function() {
 					});
 				}
 			}
+			// Restore selections & conflicts
+			requestAnimationFrame(() => {
+				for (var crn in worksheet) {
+					if (worksheet[crn] == "selected") {
+						this.selectCRN({
+							detail: {
+								crn: crn,
+								selected: true
+							}
+						});
+					}
+				}
+			});
 		}
 	});
 	</script>
