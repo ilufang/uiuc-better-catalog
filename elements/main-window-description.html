@@ -3,6 +3,7 @@
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html">
 <link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../bower_components/iron-icons/notification-icons.html">
 <link rel="import" href="../bower_components/paper-styles/color.html">
 
 <link rel="import" href="main-section-info.html">
@@ -41,20 +42,47 @@
 				transform: scale(0.6,0.6);
 				transform-origin: left top;
 			}
+			#jmp {
+				position: absolute;
+				right: 1em;
+				top: 1em;
+			}
 			#fab_fav {
 				position: absolute;
 				right: 2em;
-				top: 160px;
+				top: 32px;
+				transition: top 0.18s ease-in;
 				z-index: 2; /* Prevent toolbar shadow from overlapping*/
 				background: #fff;
 			}
+			#header-toolbar.tall #fab_fav {
+				top: 160px;
+			}
+			#header-toolbar .top {
+				opacity: 0.0;
+				transition: opacity 0.18s ease-in;
+			}
+			#header-toolbar .middle {
+				opacity: 0.0;
+				transition: opacity 0.18s ease-in;
+			}
+			#header-toolbar.tall .top {
+				opacity: 1.0;
+			}
+			#header-toolbar.tall .middle {
+				opacity: 1.0;
+			}
 		</style>
-		<paper-header-panel mode="waterfall" shadow>
-			<paper-toolbar class="tall" id="header-toolbar">
-				<span class="top" id="sync">
-					<iron-icon icon="[[syncicon]]"></iron-icon>
-					<i id="syncstatus">[[syncstatus]]</i>
-				</span>
+		<paper-header-panel mode="waterfall-tall" shadow>
+			<paper-toolbar id="header-toolbar">
+				<div class="top">
+					<div id="sync">
+						<iron-icon icon="[[syncicon]]"></iron-icon>
+						<i id="syncstatus">[[syncstatus]]</i>
+					</div>
+					<paper-icon-button icon="notification:event-note" id="jmp"></paper-icon-button>
+					<paper-tooltip id="tip_jmp" for="jmp" position="bottom" animation-delay="0">Open Calendar Planner</paper-tooltip>
+				</div>
 				<span class="middle" id="toolbar-sub"></span>
 				<span class="bottom title" id="toolbar-title">[[name]]</span>
 				<div style="display: none" id="fav">
@@ -95,14 +123,19 @@
 			fav_tooltip: String
 		},
 		ready: function(e){
-			this.listen(this.$.fab_fav, 'tap', 'bookmarkCourse');
+			this.listen(this.$.fab_fav, "tap", "bookmarkCourse");
 			this.boundUpdateBookmark = this.updateBookmark.bind(this);
+			this.querySelector("#middleBar").style.transition = "transform 0.18s ease-in";
+			this.listen(this.$.jmp, "tap", "jumpCalendar");
 		},
 		attached: function() {
 			bookmark.addListener('bookmark-changed', this.boundUpdateBookmark);
 		},
 		detached: function() {
 			bookmark.removeListener('bookmark-changed', this.boundUpdateBookmark);
+		},
+		jumpCalendar: function() {
+			location.assign("worksheet.html");
 		},
 		bookmarkCourse: function(e) {
 			if (bookmark.get(this.course) == 'all') {
@@ -207,6 +240,14 @@
 				}).bind(this));
 			});
 			this.credit = course.getCredit();
+
+			// Count sections to set maxListeners
+			var listener_count = 5; // 1 master button + 4 buffers
+			for (var type in course.sections) {
+				listener_count += course.sections[type].length + 1;
+			}
+			// console.log("Setting setMaxListners to "+(listener_count));
+			bookmark.setMaxListeners(listener_count);
 
 			// Inflate sections
 			this.$.sections.innerHTML = '';

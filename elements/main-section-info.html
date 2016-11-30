@@ -172,7 +172,9 @@ function printTime(obj) {
 			var closed_sections = [];
 			seclist.forEach((section) => {
 				var secblock = document.createElement("main-section-detail");
+				secblock.course = this.course; // TODO: this is a workaround
 				secblock.section = section;
+				// Sort closed sections to the bottom
 				if (section.status.code >= 3)
 					closed_sections.push(secblock);
 				else
@@ -235,7 +237,10 @@ function printTime(obj) {
 			<div>
 				<strong id="caption">[[title]]</strong>
 				<span id="status"><iron-icon icon="radio-button-checked"></iron-icon> [[status]]</span>
-				<span id="code">[[code]] ([[_crn]])</span>
+				<span id="code">
+					[[code]] ([[_crn]])
+					<paper-icon-button id="bookmark" icon="star"></paper-icon-button>
+				</span>
 			</div>
 			<strong id="credit">[[credit]]</strong> | <span>Term [[term]]</span>
 			<p id="description"></p>
@@ -271,15 +276,46 @@ function printTime(obj) {
 			_crn: String,
 			code: String,
 			credit: String,
-			term: String
+			term: String,
+			course: String // TODO: this is a workaround
 		},
 		listeners: {
 			down: 'eventAbsorber'
 		},
 		ready: function() {
+			this.listen(this.$.bookmark, "tap", "bookmarkSection");
+			this.boundUpdateBookmark = this.updateBookmark.bind(this);
+		},
+		attached: function() {
+			bookmark.addListener('bookmark-changed', this.boundUpdateBookmark);
+		},
+		detached: function() {
+			bookmark.removeListener('bookmark-changed', this.boundUpdateBookmark);
 		},
 		eventAbsorber: function(e) {
 			e.stopPropagation();
+		},
+		bookmarkSection: function() {
+			if (bookmark.get(this.course, this.section.type, this._crn) == 'all') {
+				bookmark.remove(this.course, this.section.type, this._crn);
+			} else {
+				bookmark.add(this.course, this.section.type, this._crn);
+			}
+		},
+		updateBookmark: function() {
+			switch(bookmark.get(this.course, this.section.type, this._crn)) {
+				case 'all':
+					this.$.bookmark.icon = "star";
+					let courseobj = catalog.getCourse(this.course);
+					this.$.bookmark.style.color = palette["--paper-"+courseobj.getColor()+"-500"];
+					break;
+				case 'none':
+					this.$.bookmark.icon = "star-border";
+					this.$.bookmark.style.color = "#000";
+					break;
+				default:
+					console.warn("Bookmark reported unexpected value: "+bookmark.get(this.course, this.type));
+			}
 		},
 		setCRN: function(crn, prev) {
 			if (crn == prev) {
@@ -363,7 +399,7 @@ function printTime(obj) {
 				this.$.meetings.appendChild(row);
 			});
 
-			// this.updateBookmark();
+			this.updateBookmark();
 		}
 	});
 	</script>
