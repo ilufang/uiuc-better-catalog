@@ -72,7 +72,7 @@ for (var crn in crnsections) {
 				left: 0px;
 				width: 0px;
 				height: 100%;
-				transition: opacity 0.5s;
+				transition: opacity 0.3s;
 			};
 			#container {
 				cursor: pointer;
@@ -80,7 +80,7 @@ for (var crn in crnsections) {
 				transform-origin: left bottom;
 				height: 100%;
 				user-select: none;
-				transition: background 0.5s, color 0.5s;
+				transition: background 0.3s, color 0.3s;
 				-webkit-user-select: none;
 			}
 			#container>span {
@@ -285,6 +285,9 @@ for (var crn in crnsections) {
 				height: calc(100% - 64px);
 				overflow: auto;
 			}
+			#header .title {
+				margin-left: 0px;
+			}
 			#tbody {
 				height: calc(100% - 6em - 1px);
 				overflow-y: auto;
@@ -298,7 +301,7 @@ for (var crn in crnsections) {
 			}
 			tr {
 				border-bottom: solid #ccc 1px;
-				transition: background 0.5s;
+				transition: background 0.3s;
 			}
 			tr:hover {
 				background: var(--paper-grey-200);
@@ -326,7 +329,7 @@ for (var crn in crnsections) {
 			}
 			.td-day {
 				text-align: left;
-				transition: width 0.5s;
+				transition: width 0.3s;
 				width: 40em; /* 4em*(18-8) */
 				overflow: hidden;
 				height: 100%;

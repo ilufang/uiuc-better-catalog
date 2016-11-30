@@ -72,6 +72,16 @@
 			#header-toolbar.tall .middle {
 				opacity: 1.0;
 			}
+			#header-toolbar #short_code {
+				transition: max-width 0.18s ease-in;
+				max-width: 100%;
+				overflow: hidden;
+				display: inline-block;
+				vertical-align: bottom;
+			}
+			#header-toolbar.tall #short_code {
+				max-width: 0%;
+			}
 		</style>
 		<paper-header-panel mode="waterfall-tall" shadow>
 			<paper-toolbar id="header-toolbar">
@@ -84,7 +94,9 @@
 					<paper-tooltip id="tip_jmp" for="jmp" position="bottom" animation-delay="0">Open Calendar Planner</paper-tooltip>
 				</div>
 				<span class="middle" id="toolbar-sub"></span>
-				<span class="bottom title" id="toolbar-title">[[name]]</span>
+				<div class="bottom title" id="toolbar-title">
+					<span id="short_code"></span>[[name]]
+				</div>
 				<div style="display: none" id="fav">
 					<paper-fab id="fab_fav" icon="star"></paper-fab>
 					<paper-tooltip id="tip_fav" for="fab_fav" position="top" animation-delay="0">[[fav_tooltip]]</paper-tooltip>
@@ -171,6 +183,7 @@
 			}
 			var course = catalog.getCourse(code);
 			if (!course) {
+				this.course = prev;
 				return;
 			}
 			if (this.courseobj && this.courseobj.code == course.code) {
@@ -221,6 +234,7 @@
 			this.dept = catalog.courses[course.dept].name;
 			this.name = course.title;
 			this.$['toolbar-sub'].innerText = course.dept + ' ' + course.number + ' | ' + this.dept;
+			this.$.short_code.innerHTML = course.dept + ' ' + course.number + ' |&nbsp;';
 			this.$.description.innerHTML = course.description;
 			this.$.description.querySelectorAll("a").forEach((a_course, idx, arr) => {
 				arr[idx].href="#";
