@@ -1,50 +1,271 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <link rel="import" href="../bower_components/polymer/polymer.html">
-  <link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
-  <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-fab/paper-fab.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../bower_components/iron-icons/notification-icons.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
 
-</head>
+<link rel="import" href="main-section-info.html">
+
+<script type="text/javascript" src="palette.js"></script>
+
 <style is="custom-style">
 :root{
-  paper-toolbar{
-    --paper-toolbar-title:{
-      font-size:20pt;
-      height:auto;
-    };
-  }
-}
-.title_description{
-
-}
+	paper-toolbar{
+		--paper-toolbar-title:{
+			font-size:20pt;
+			height:auto;
+		};
+	}
 }
 </style>
 
 <dom-module id="main-window-description">
-  <template>
-    <paper-header-panel mode="waterfall">
-      <paper-toolbar class="tall">
-        <span class="title title_description">ENGINEERINGtest</span>
-        <span class="middle title title_code">ECE120</span>
-        <span class="bottom title">Introduction to Computer Engineering</span>
-      </paper-toolbar>
-      <div class="content fit">
-        This is a content <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-      </div>
-    </paper-header-panel>
-  </template>
-  <script>
-  Polymer({
-    is: "main-window-description",
-    properties: {
+	<template>
+		<style type="text/css">
+			:host {
+				font-family: sans-serif;
+			}
+			#toolbar-title {
+				margin-left: 0px;
+				font-weight: bold;
+			}
+			#description {
+				font-size: 1.2em;
+			}
+			#container {
+				margin: 1em;
+			}
+			#sync {
+				opacity: 0.6;
+				transform: scale(0.6,0.6);
+				transform-origin: left top;
+			}
+			#jmp {
+				position: absolute;
+				right: 1em;
+				top: 1em;
+			}
+			#fab_fav {
+				position: absolute;
+				right: 2em;
+				top: 32px;
+				transition: top 0.18s ease-in;
+				z-index: 2; /* Prevent toolbar shadow from overlapping*/
+				background: #fff;
+			}
+			#header-toolbar.tall #fab_fav {
+				top: 160px;
+			}
+			#header-toolbar .top {
+				opacity: 0.0;
+				transition: opacity 0.18s ease-in;
+			}
+			#header-toolbar .middle {
+				opacity: 0.0;
+				transition: opacity 0.18s ease-in;
+			}
+			#header-toolbar.tall .top {
+				opacity: 1.0;
+			}
+			#header-toolbar.tall .middle {
+				opacity: 1.0;
+			}
+		</style>
+		<paper-header-panel mode="waterfall-tall" shadow>
+			<paper-toolbar id="header-toolbar">
+				<div class="top">
+					<div id="sync">
+						<iron-icon icon="[[syncicon]]"></iron-icon>
+						<i id="syncstatus">[[syncstatus]]</i>
+					</div>
+					<paper-icon-button icon="notification:event-note" id="jmp"></paper-icon-button>
+					<paper-tooltip id="tip_jmp" for="jmp" position="bottom" animation-delay="0">Open Calendar Planner</paper-tooltip>
+				</div>
+				<span class="middle" id="toolbar-sub"></span>
+				<span class="bottom title" id="toolbar-title">[[name]]</span>
+				<div style="display: none" id="fav">
+					<paper-fab id="fab_fav" icon="star"></paper-fab>
+					<paper-tooltip id="tip_fav" for="fab_fav" position="top" animation-delay="0">[[fav_tooltip]]</paper-tooltip>
+				</div>
+			</paper-toolbar>
+			<div style="display: none" id="container">
+				<strong style="color:#00f">[[credit]]</strong>
+				<p class="content fit" id="description"></p>
+				<hr />
+				<div class="content fit" id="requirements"></div>
+				<hr />
+				<div class="content fit" id="sections"></div>
+			</div>
+		</paper-header-panel>
+	</template>
+	<script>
+	Polymer({
+		is: "main-window-description",
+		properties: {
+			course: {
+				type: String,
+				notify: true,
+				reflectToAttribute: true,
+				observer: "setCourse"
+			},
+			courseobj: Object,
+			dept: String,
+			credit: String,
+			name: {
+				type: String,
+				value: "UIUC Improved Course Explorer"
+			},
+			sync: String,
+			syncicon: String,
+			syncstatus: String,
+			fav_tooltip: String
+		},
+		ready: function(e){
+			this.listen(this.$.fab_fav, "tap", "bookmarkCourse");
+			this.boundUpdateBookmark = this.updateBookmark.bind(this);
+			this.querySelector("#middleBar").style.transition = "transform 0.18s ease-in";
+			this.listen(this.$.jmp, "tap", "jumpCalendar");
+		},
+		attached: function() {
+			bookmark.addListener('bookmark-changed', this.boundUpdateBookmark);
+		},
+		detached: function() {
+			bookmark.removeListener('bookmark-changed', this.boundUpdateBookmark);
+		},
+		jumpCalendar: function() {
+			location.assign("worksheet.html");
+		},
+		bookmarkCourse: function(e) {
+			if (bookmark.get(this.course) == 'all') {
+				bookmark.remove(this.course);
+			} else {
+				bookmark.add(this.course);
+			}
+		},
+		updateBookmark: function() {
+			switch(bookmark.get(this.course)) {
+				case 'all':
+					// this.$.fab_fav.style.background = palette["--paper-green-200"];
+					this.$.fab_fav.icon = 'star';
+					this.fav_tooltip = "All sections saved";
+					break;
+				case 'partial':
+					// this.$.fab_fav.style.background = palette["--paper-orange-200"];
+					this.$.fab_fav.icon = 'star-half';
+					this.fav_tooltip = "Selected sections saved";
+					break;
+				case 'none':
+					// this.$.fab_fav.style.background = "#fff";
+					this.$.fab_fav.icon = 'star-border';
+					this.fav_tooltip = "Save this course";
+					break;
+				default:
+					console.warn("Bookmark reported unexpected inclusion status: "+bookmark.get(this.course));
+			}
+		},
+		setCourse: function(code, prev) {
+			if (code == prev) {
+				return;
+			}
+			var course = catalog.getCourse(code);
+			if (!course) {
+				return;
+			}
+			if (this.courseobj && this.courseobj.code == course.code) {
+				return;
+			}
 
-    },
-    ready: function(e){
+			this.inflateCourse(course, 'setCourse');
 
-    }
-  });
-  </script>
+			// Trigger auto-sync
+			if (this.sync != course.code) {
+				this.sync = course.code;
+				this.syncicon = 'cloud-queue';
+				this.syncstatus = 'Updating...';
+				catalog.update(code).then(((data) => {
+					this.inflateCourse(data, 'update');
+				}).bind(this), (err) => {
+					console.error(err);
+					this.sync = 'err';
+					this.syncicon = 'error';
+					this.syncstatus = err;
+				});
+			}
+		},
+		inflateCourse: function(course, src) {
+			if (src=='update') {
+				if (course.code != this.courseobj.code) {
+					// Outdated update, do not inflate
+					return;
+				}
+				this.sync = '';
+				this.syncicon = 'cloud-done';
+				this.syncstatus = 'Up to date!';
+
+				// Preserve open/close status of sections
+				var section_expanded = {};
+				this.$.sections.querySelectorAll('main-section-group').forEach((section) => {
+					section_expanded[section.type] = !section.contentsHidden;
+				});
+			}
+
+			// Colorize!
+			this.$['header-toolbar'].style.background = palette['--paper-'+course.getColor()+'-500'];
+
+			this.courseobj = course;
+			this.$.container.style.display = '';
+			this.$.fav.style.display = '';
+
+			this.dept = catalog.courses[course.dept].name;
+			this.name = course.title;
+			this.$['toolbar-sub'].innerText = course.dept + ' ' + course.number + ' | ' + this.dept;
+			this.$.description.innerHTML = course.description;
+			this.$.description.querySelectorAll("a").forEach((a_course, idx, arr) => {
+				arr[idx].href="#";
+				a_course.addEventListener("click", (function() {
+					this.course = a_course.innerText;
+				}).bind(this));
+			});
+
+			this.$.requirements.innerHTML='';
+			course.requirements.raw.forEach((line) => {
+				this.$.requirements.innerHTML += "<p>"+line+"</p>\n";
+			});
+			this.$.requirements.querySelectorAll("a").forEach((a_course, idx, arr) => {
+				arr[idx].href="#";
+				a_course.addEventListener("click", (function() {
+					this.course = a_course.innerText;
+				}).bind(this));
+			});
+			this.credit = course.getCredit();
+
+			// Count sections to set maxListeners
+			var listener_count = 5; // 1 master button + 4 buffers
+			for (var type in course.sections) {
+				listener_count += course.sections[type].length + 1;
+			}
+			// console.log("Setting setMaxListners to "+(listener_count));
+			bookmark.setMaxListeners(listener_count);
+
+			// Inflate sections
+			this.$.sections.innerHTML = '';
+			for (var type in course.sections) {
+				var secblock = document.createElement("main-section-group");
+				secblock.course = course.code;
+				secblock.type = type;
+				if (src=='update' && section_expanded[type]) {
+					secblock.toggleContents(false,'noanimation');
+				}
+				this.$.sections.appendChild(secblock);
+			}
+
+			this.$.fab_fav.style.color = palette["--paper-"+this.courseobj.getColor()+"-800"];
+			this.updateBookmark();
+		}
+	});
+	</script>
 
 </dom-module>
 </html>

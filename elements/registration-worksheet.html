@@ -15,11 +15,10 @@
 	<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 
 	<link rel="import" type="text/html" href="sidebar-element.html">
-	<link rel="import" type="text/html" href="main-window-description.html">
-	<link rel="import" type="text/html" href="course-description.html">
+	<link rel="import" type="text/html" href="main-window-worksheet.html">
 </head>
 
-<dom-module id="registration-app">
+<dom-module id="registration-worksheet">
 	<template>
 		<style is="custom-style" include="iron-flex iron-flex-alignment"></style>
 		<style>
@@ -31,8 +30,7 @@
 		</style>
 		<paper-drawer-panel id="main_drawer" right-drawer drawer-width="350px">
 			<div main class="fullbleed layout vertical">
-				<main-window-description id="course"></main-window-description>
-				<!-- <course-description id="course"></course-description> -->
+				<main-window-worksheet id="course"></main-window-worksheet>
 			</div>
 			<paper-material drawer elevation="3" class="layout fullbleed vertical">
 				<sidebar-element id="sidebar" class="flex">
@@ -43,7 +41,7 @@
 
 	<script>
 	Polymer({
-		is: "registration-app",
+		is: "registration-worksheet",
 		properties: {
 
 		},
@@ -53,6 +51,7 @@
 			});
 			// Set z-index to force the drawer to cover favorite fab
 			this.$.main_drawer.$.drawer.style.zIndex = "10";
+			this.$.main_drawer.responsiveWidth = "1000000px";
 		}
 	});
 	</script>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Catalog data helper</title>
+	<script type="text/javascript">
+	console.log("Main frame loaded.");
+	fs = require('fs');
+	ioutils = require('ioutils');
+	Catalog = require('catalog');
+	catalog = null;
+	function log(msg) {
+		document.querySelector("#log").innerText += msg + "\n";
+	}
+	function loadFromLocal() {
+		catalog = Catalog.fromLocalStorage();
+		log("Loaded from local.");
+	}
+	function loadFromDir() {
+		catalog = Catalog.fromDirectory("data");
+		log("Loaded from directory.");
+	}
+	function loadFromJson() {
+		var obj = JSON.parse(fs.readFileSync('data/courses.json'));
+		catalog = Catalog.fromStorage(new ioutils.json_io(obj));
+		log("Loaded from JSON file.");
+	}
+	function writeToLocal() {
+		catalog.save(localStorage);
+		log("Saved to local.");
+	}
+	function writeToDir() {
+		var io = new ioutils.fs_io('data');
+		catalog.save(io);
+		log("Saved to directory.");
+	}
+	function writeToJson() {
+		var io = new ioutils.json_io();
+		catalog.save(io);
+		fs.writeFileSync('data/courses.json', JSON.stringify(io.data));
+		log("Saved to JSON file.");
+	}
+	function goback() {
+		location.assign("index.html");
+	}
+	console.log("Frame loaded.");
+	</script>
+
+</head>
+<body>
+	<h1>Catalog data migrator</h1>
+	<div id="controls">
+		<button onclick="loadFromLocal()">loadFromLocal</button>
+		<button onclick="loadFromDir()">loadFromDir</button>
+		<button onclick="loadFromJson()">loadFromJson</button>
+		<br />
+		<button onclick="writeToLocal()">writeToLocal</button>
+		<button onclick="writeToDir()">writeToDir</button>
+		<button onclick="writeToJson()">writeToJson</button>
+		<br />
+		<button onclick="goback()">Go Back</button>
+	</div>
+	<p id="log"></p>
+	<script type="text/javascript">
+		if (location.hash == "#autorestore") {
+			document.querySelector("#controls").style.display="none";
+			loadFromJson();
+			writeToLocal();
+			goback();
+		}
+	</script>
+</body>
+</html>

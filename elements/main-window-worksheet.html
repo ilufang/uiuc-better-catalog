@@ -1,0 +1,706 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
+<link rel="import" href="../bower_components/paper-styles/color.html">
+
+<link rel="import" href="main-section-info.html">
+
+<script type="text/javascript" src="palette.js"></script>
+
+<script type="text/javascript">
+/**
+ *	Worksheet data model
+ *
+ *	Associative arrays indexed by CRN
+ *
+ *	- status: CRN mapped to a string value from the following
+ *		- `available`: Selectable
+ *		- `selected`: Selected
+ *		- `conflict`: Disabled because of another selected section
+ *		- `disabled`: Manually disabled (reserved for future usage)
+ *
+ *	Storage model: list of selected CRNs
+ */
+
+// Index CRN to course
+var crnsections = {}, worksheet = {};
+(function(){
+for (var course in bookmark.data) {
+	for (var type in bookmark.data[course]) {
+		bookmark.data[course][type].forEach((crn) => {
+			let crnobj = catalog.sections[crn];
+			crnsections[crnobj.crn] = { course, type };
+		});
+	}
+}
+window.saveWorkSheet = function() {
+	var selected = [];
+	for (var crn in worksheet) {
+		if (worksheet[crn] == "selected") {
+			selected.push(parseInt(crn));
+		}
+	}
+	localStorage.setItem("worksheet", JSON.stringify(selected));
+}
+for (var crn in crnsections) {
+	worksheet[crn] = "available";
+}
+})();
+</script>
+
+<style is="custom-style">
+:root{
+	paper-toolbar{
+		--paper-toolbar-title:{
+			font-size:20pt;
+			height:auto;
+		};
+	}
+}
+</style>
+
+<dom-module id="worksheet-section">
+	<template>
+		<style type="text/css">
+			:host {
+				display: inline-block;
+				position: relative;
+				bottom: 0px;
+				left: 0px;
+				width: 0px;
+				height: 100%;
+				transition: opacity 0.5s;
+			};
+			#container {
+				cursor: pointer;
+				position: relative;
+				transform-origin: left bottom;
+				height: 100%;
+				user-select: none;
+				transition: background 0.5s, color 0.5s;
+				-webkit-user-select: none;
+			}
+			#container>span {
+				display: inline-block;
+				position: relative;
+				top: calc(50% - 0.5em); /* Align to middle */
+				width: 100%;
+				text-align: center;
+				white-space: pre-wrap;
+			}
+			#container>span#legend {
+				text-align: left;
+				top: calc(100% - 1em); /* Align to bottom */
+				color: #ccc;
+				transform: scale(0.7,0.7);
+			}
+		</style>
+		<paper-material id="container" elevation="0" animated>
+			<span>[[caption]]</span>
+			<paper-ripple noink="[[disabled]]"></paper-ripple>
+		</paper-material>
+	</template>
+	<script type="text/javascript">
+	Polymer({
+		is: "worksheet-section",
+		properties: {
+			dept: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setDept"
+			},
+			begin: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setBeginTime"
+			},
+			end: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setEndTime"
+			},
+			caption: {
+				type: String,
+				reflectToAttribute: true
+			},
+			color: String,
+			selected: {
+				type: Boolean,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setSelected"
+			},
+			disabled: {
+				type: Boolean,
+				reflectToAttribute: true,
+				value: false,
+				notify: true,
+				observer: "setDisabled"
+			},
+			crn: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setCRN"
+			},
+			multiline: {
+				type: Boolean,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setMultiLine"
+			}
+		},
+		setMultiLine: function(multiline) {
+			if (multiline) {
+				this.$$("#container>span").style.top = "0.4em";
+			} else {
+				this.$$("#container>span").style.top = "";
+			}
+		},
+		setDisabled: function(disabled) {
+			if (disabled) {
+				if (this.dept != "LEGEND") {
+					this.$.container.style.background = palette["--paper-grey-200"];
+					this.$.container.style.color = palette["--paper-grey-400"];
+				}
+				this.$.container.style.cursor = "initial";
+			} else {
+				this.setSelected(this.selected);
+				this.$.container.style.cursor = "";
+			}
+		},
+		setSelected: function(selected) {
+			if (selected instanceof Event) {
+				// The selection event will be processed and
+				// status updated by the worksheet
+				// this.selected = !this.selected;
+				if (!this.disabled) {
+					this.fire("section-selected", {
+						selected: !this.selected, // this.selected is not yet negated
+						crn: this.crn
+					});
+				}
+				return;
+			}
+			if (selected) {
+				this.$.container.style.background = palette["--paper-"+this.color+"-500"];
+				this.$.container.style.color = "#fff";
+				this.style.zIndex = "3";
+			} else {
+				this.$.container.style.background = palette["--paper-"+this.color+"-100"];
+				this.$.container.style.color = "#000";
+				this.style.zIndex = "";
+			}
+		},
+		setCRN: function(crn) {
+			if (crn) {
+				this.disabled = false;
+			} else {
+				this.disabled = true;
+			}
+		},
+		setBeginTime: function(time) {
+			var parts = time.split(':');
+			if (parts.length != 3) {
+				console.warn('Cannot parse time: '+time);
+				return false;
+			}
+			time = (parts[0]/1) + (parts[1]/60) + (parts[2]/3600);
+			this._beginTime = time;
+			var left = (time - 8) * 4; // 4em per hour
+			this.$.container.style.left = left+"em";
+		},
+		setEndTime: function(time) {
+			var parts = time.split(':');
+			if (parts.length != 3) {
+				console.warn('Cannot parse time: '+time);
+				return false;
+			}
+			time = (parts[0]/1) + (parts[1]/60) + (parts[2]/3600);
+			time += 10/3600; // Align End
+			this._endTime = time;
+			var width = (time - this._beginTime) * 4; // 4em per hour
+			this.$.container.style.width = width+"4em";
+		},
+		setDept: function(dept) {
+			this.$.container.style.transform = "";
+			this.$.container.style.color = "";
+			this.$.container.querySelector("span").id="";
+			if (catalog.courses[dept]) {
+				this.$.container.elevation = 1;
+				for (var k in catalog.courses[dept]) {
+					this.color = catalog.courses[dept][k].getColor();
+					this.setSelected(this.selected);
+					break;
+				}
+			} else if (dept == 'DISABLED') {
+				// Disabler
+				this.$.container.elevation = 0;
+				this.$.container.style.background = "#ccc";
+				this.disabled = true;
+			} else if (dept == 'LEGEND') {
+				// Time legend
+				this.$.container.elevation = 0;
+				this.$.container.style.background = "";
+				this.$.container.querySelector("span").id="legend";
+				this.disabled = true;
+			} else {
+				this.$.container.elevation = 1;
+				this.$.container.style.background = "#fff";
+			}
+		},
+		tapdown: function() {
+			if (!this.disabled) {
+				this.$.container.elevation = 3;
+			}
+		},
+		tapup: function() {
+			if (!this.disabled) {
+				this.$.container.elevation = 1;
+			}
+		},
+		ready: function() {
+			this.listen(this.$.container, "tap", "setSelected");
+			this.listen(this.$.container, "down", "tapdown");
+			this.listen(this.$.container, "up", "tapup");
+		}
+	});
+	</script>
+</dom-module>
+
+<dom-module id="main-window-worksheet">
+	<template>
+		<style type="text/css">
+			:host {
+				font-family: sans-serif;
+				overflow-x: auto;
+			}
+			#container {
+				height: calc(100% - 64px);
+				overflow: auto;
+			}
+			#tbody {
+				height: calc(100% - 6em - 1px);
+				overflow-y: auto;
+				display: inline-block;
+			}
+			td, th {
+				white-space: nowrap;
+			}
+			table {
+				border-collapse: collapse;
+			}
+			tr {
+				border-bottom: solid #ccc 1px;
+				transition: background 0.5s;
+			}
+			tr:hover {
+				background: var(--paper-grey-200);
+			}
+			td, th {
+				border: none;
+				border-right: 1px dashed #ccc;
+				text-align: left;
+				height: 3em;
+				overflow: hidden;
+			}
+			#thead th .td-day {
+				/* For ripples */
+				position: relative;
+				text-align: center;
+				cursor: pointer;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+			#thead .td-day span {
+				/* Center text vertically */
+				display: inline-block;
+				position: relative;
+				top: calc(50% - 0.7em);
+			}
+			.td-day {
+				text-align: left;
+				transition: width 0.5s;
+				width: 40em; /* 4em*(18-8) */
+				overflow: hidden;
+				height: 100%;
+			}
+			.td-day.td-fullwidth {
+				width: 52em; /* 4em*(21-8) */
+			}
+			.td-name {
+				position: relative;
+				cursor: pointer;
+				width: 12em;
+				height: 100%;
+				padding-top: 0.4em;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+			.td-name code {
+				/* Center text vertically */
+				display: inline-block;
+				position: relative;
+				top: calc(50% - 0.7em);
+				left: 2em;
+			}
+			.td-name strong {
+			}
+			.td-name i {
+				font-size: 0.8em;
+				color: #666;
+			}
+			#jmp {
+				position: absolute;
+				right: 1em;
+				top: 1em;
+			}
+		</style>
+		<paper-header-panel mode="waterfall" shadow>
+			<paper-toolbar id="header">
+				<div class="title">Timetable Worksheet</div>
+				<paper-icon-button icon="search" id="jmp"></paper-icon-button>
+				<paper-tooltip id="tip_jmp" for="jmp" position="bottom" animation-delay="0">Open Course Explorer</paper-tooltip>
+			</paper-toolbar>
+			<div id="container">
+				<div id="thead">
+					<table>
+						<tr>
+							<th><div id="th-name" class="td-name">&nbsp;</div></th>
+							<th><div id="th-m" class="td-day td-m">
+								<span>MON</span>
+								<paper-ripple></paper-ripple>
+							</div></th>
+							<th><div id="th-t" class="td-day td-t">
+								<span>TUE</span>
+								<paper-ripple></paper-ripple>
+							</div></th>
+							<th><div id="th-w" class="td-day td-w">
+								<span>WED</span>
+								<paper-ripple></paper-ripple>
+							</div></th>
+							<th><div id="th-r" class="td-day td-r">
+								<span>THU</span>
+								<paper-ripple></paper-ripple>
+							</div></th>
+							<th><div id="th-f" class="td-day td-f">
+								<span>FRI</span>
+								<paper-ripple></paper-ripple>
+							</div></th>
+							<tr>
+								<td><div id="td-name" class="td-name">Selected</div></td>
+								<td><div id="td-m" class="td-day td-m"></div></td>
+								<td><div id="td-t" class="td-day td-t"></div></td>
+								<td><div id="td-w" class="td-day td-w"></div></td>
+								<td><div id="td-r" class="td-day td-r"></div></td>
+								<td><div id="td-f" class="td-day td-f"></div></td>
+							</tr>
+						</tr>
+					</table>
+				</div>
+				<div id="tbody">
+					<table>
+						<tbody id="seclist">
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</paper-header-panel>
+	</template>
+	<script>
+	Polymer({
+		is: "main-window-worksheet",
+		properties: {
+		},
+		ready: function() {
+			// Inflate legends
+			var days = "mtwrf";
+			for (var d = 0; d < days.length; ++d) {
+				for (var t = 8; t < 21; ++t) {
+					var cell = document.createElement("worksheet-section");
+					cell.begin = t+":00:00";
+					cell.end = t+":50:00";
+					cell.caption = t;
+					cell.dept = "LEGEND";
+					Polymer.dom(this.$["td-"+days[d]]).appendChild(cell);
+				}
+				this.$["th-"+days[d]].addEventListener("click", this.hideDay.bind(this, d));
+			}
+			this.listen(this.$.jmp, "tap", "jumpExplorer");
+			// Listener
+			this.addEventListener("section-selected", this.selectCRN.bind(this));
+			// Inflate contents
+			this.updateBookmark();
+		},
+		jumpExplorer: function() {
+			location.assign("index.html");
+		},
+		hideDay: function(d) {
+			var days = "mtwrf";
+			if (this.$["th-"+days[d]].style.width == "") {
+				// Hide
+				this.querySelectorAll(".td-"+days[d]).forEach((item) => {
+					item.style.width = "3em";
+				});
+			} else {
+				// Show
+				this.querySelectorAll(".td-"+days[d]).forEach((item) => {
+					item.style.width = "";
+				});
+			}
+		},
+		hideCourse: function(course, type) {
+			// course and type must be already sanitized!
+			var master = this.$$(".tr-master.tr-"+course+"-"+type);
+			// TODO: animation
+			if (master.folded) {
+				master.folded = false;
+				// Expand
+				this.$.tbody.querySelectorAll("tr.tr-detail.tr-"+course+"-"+type).forEach((item) => {
+					item.style.display = "";
+				});
+			} else {
+				// Hide
+				master.folded = true;
+				this.$.tbody.querySelectorAll("tr.tr-detail.tr-"+course+"-"+type).forEach((item) => {
+					item.style.display = "none";
+				});
+			}
+		},
+		selectCRN: function(e) {
+			var crn = e.detail.crn, selected = e.detail.selected;
+			// Reject invalid selects
+			switch(worksheet[crn]) {
+				case "conflict":
+				case "disabled":
+					console.warn("Trying to select disabled section: "+crn);
+					return;
+			}
+
+			// Clear all conflicts
+			for (var wscrn in worksheet) {
+				if (worksheet[wscrn] == 'conflict') {
+					worksheet[wscrn] = 'available';
+					document.querySelectorAll(`#tbody worksheet-section[crn="${wscrn}"]`).forEach((item) => {
+						item.disabled = false;
+					});
+				}
+			}
+			// Single selection: reset other selected crns in the current section
+			var course = crnsections[crn].course, type = crnsections[crn].type;
+			bookmark.data[course][type].forEach((bmcrn) => {
+				if (worksheet[bmcrn] == "selected") {
+					worksheet[bmcrn] = "available";
+					document.querySelectorAll(`#tbody worksheet-section[crn="${bmcrn}"]`).forEach((item) => {
+						item.selected = false;
+					});
+				}
+			});
+			// Make the selection
+			if (selected) {
+				worksheet[crn] = "selected";
+				this.querySelectorAll(`#tbody worksheet-section[crn="${crn}"]`).forEach((item) => {
+					item.selected = true;
+				});
+				// Update thead section
+				this.querySelectorAll(`#thead worksheet-section[crn="${crn}"]`).forEach((item) => {
+					item.style.opacity = "1.0";
+				});
+			} else {
+				// Update thead section
+				this.querySelectorAll(`#thead worksheet-section[crn="${crn}"]`).forEach((item) => {
+					item.style.opacity = "0.0";
+				});
+			}
+			// Calculate conflicts
+			for (var wscrn in worksheet) {
+				if (worksheet[wscrn] == "selected") {
+					this.setConflict(wscrn);
+				}
+			}
+			// Save
+			saveWorkSheet();
+		},
+		setConflict: function(crn) {
+			var days = "mtwrf";
+			var crnobj = catalog.sections[crn];
+			var conflictlist = [];
+			crnobj.meetings.forEach((meetobj) => {
+				var	starttime = meetobj.time[0],
+					endtime = meetobj.time[1];
+				starttime = starttime.h/1 + starttime.m/60 + starttime.s/3600;
+				endtime = endtime.h/1 + endtime.m/60 + endtime.s/3600;
+				for (var wscrn in worksheet) {
+					// Exclude sections from the same course
+					if (crnsections[crn].course == crnsections[wscrn].course &&
+						crnsections[crn].type == crnsections[wscrn].type) {
+						continue;
+					}
+					catalog.sections[wscrn].meetings.forEach((wsmeetobj) => {
+						// Exclude meetings on non-conflicting days
+						var day_conflict = false;
+						meetobj.day.forEach((d) => {
+							if (wsmeetobj.day.indexOf(d)!=-1) {
+								day_conflict = true;
+							}
+						});
+						if (!day_conflict)
+							return;
+
+						var	wsstarttime = wsmeetobj.time[0],
+							wsendtime = wsmeetobj.time[1];
+						wsstarttime = wsstarttime.h/1 + wsstarttime.m/60 + wsstarttime.s/3600;
+						wsendtime = wsendtime.h/1 + wsendtime.m/60 + wsendtime.s/3600;
+						if (wsstarttime >= starttime && wsstarttime <= endtime ||
+							wsendtime >= starttime && wsendtime <= endtime ||
+							wsstarttime <= starttime && wsendtime >= endtime) {
+							// This is a conflict
+							if (worksheet[wscrn] != "conflict" && worksheet[wscrn] != "disabled") {
+								worksheet[wscrn] = "conflict";
+								document.querySelectorAll(`#tbody worksheet-section[crn="${wscrn}"]`).forEach((item) => {
+									item.disabled = true;
+								});
+							}
+						}
+					});
+
+				};
+			});
+		},
+		updateBookmark: function() {
+			var days = "mtwrf";
+			// Create sections
+			for (var course in bookmark.data) {
+				for (var type in bookmark.data[course]) {
+					var san_course = course.replace(/ /g, '');
+					var san_type = type.replace(/\//g, '_').replace(/ /g, '');
+
+					var secgroup = bookmark.data[course][type];
+					var	courseobj = catalog.getCourse(course),
+						secobj = courseobj.sections[type];
+
+					var master_tr = document.createElement("tr");
+					master_tr.className = "tr-"+san_course+"-"+san_type+" tr-master";
+					master_tr.folded = true;
+
+					var master_name = document.createElement("td");
+					var master_namediv = document.createElement("div");
+					master_namediv.innerHTML = `<strong>${course}</strong><br /><i>${type}</i>`;
+					master_namediv.className = "td-name";
+					Polymer.dom(master_namediv).appendChild(document.createElement("paper-ripple"));
+					master_namediv.addEventListener("click", ((course, type) => {
+						this.hideCourse(course, type);
+					}).bind(this,san_course,san_type));
+					Polymer.dom(master_name).appendChild(master_namediv);
+					Polymer.dom(master_tr).appendChild(master_name);
+
+					for (var i=0; i<days.length; ++i) {
+						var day_cell = document.createElement("td");
+						var day_div = document.createElement("div");
+						day_div.className = "td-day td-"+days[i];
+						Polymer.dom(day_cell).appendChild(day_div);
+						Polymer.dom(master_tr).appendChild(day_cell);
+					}
+					Polymer.dom(this.$.seclist).appendChild(master_tr);
+					// Insert all CRNs
+					secobj.forEach((crnobj) => {
+						var row = document.createElement("tr");
+						row.className = "tr-detail tr-"+san_course+"-"+san_type;
+						row.id = "tr-"+crnobj.crn;
+						row.style.display = "none";
+
+						var name_cell = document.createElement("td");
+						var name_div = document.createElement("div");
+						name_div.className = "td-name";
+						name_div.innerHTML = `<code>${crnobj.section} (${crnobj.crn})</code>`;
+						Polymer.dom(name_div).appendChild(document.createElement("paper-ripple"));
+						/*
+						name_div.addEventListener("click", ((crn)=>{
+							this.selectCRN({
+								detail: {
+									crn: crn,
+									selected: true
+								}
+							});
+						}).bind(this,crnobj.crn));
+						*/
+						Polymer.dom(name_cell).appendChild(name_div);
+						Polymer.dom(row).appendChild(name_cell);
+						for (var i=0; i<days.length; ++i) {
+							var day_cell = document.createElement("td");
+							var day_div = document.createElement("div");
+							day_div.className = "td-day td-"+days[i];
+							Polymer.dom(day_cell).appendChild(day_div);
+							Polymer.dom(row).appendChild(day_cell);
+						}
+						crnobj.meetings.forEach((meetobj) => {
+							var	starttime = meetobj.time[0],
+								endtime = meetobj.time[1];
+							starttime = starttime.h+":"+starttime.m+":"+starttime.s;
+							endtime = endtime.h+":"+endtime.m+":"+endtime.s;
+							meetobj.day.forEach((day) => {
+								// Decide whether this day is full width
+								if (meetobj.time[1].h > 18) {
+									this.querySelectorAll("div.td-"+day).forEach((daydiv) => {
+										if (daydiv.className.indexOf("td-fullwidth")==-1) {
+											daydiv.className += " td-fullwidth";
+										}
+									});
+								}
+								day = day.toLowerCase();
+								var sec = document.createElement("worksheet-section");
+								sec.begin = starttime;
+								sec.end = endtime;
+								sec.dept = courseobj.dept;
+								sec.caption = crnobj.section;
+								sec.crn = crnobj.crn;
+								Polymer.dom(row.querySelector("div.td-"+day)).appendChild(sec);
+								Polymer.dom(master_tr.querySelector("div.td-"+day)).appendChild(sec.cloneNode(true));
+								// Create thead section
+								var ths = sec.cloneNode(true);
+								ths.style.opacity = "0.0";
+								ths.caption = courseobj.dept+"\n"+courseobj.number;
+								ths.disabled = true;
+								ths.selected = true;
+								ths.multiline = true;
+								Polymer.dom(this.$$("div#td-"+day)).appendChild(ths);
+							});
+
+						});
+						Polymer.dom(this.$.seclist).appendChild(row);
+					});
+				}
+			}
+			// Restore selections & conflicts
+			requestAnimationFrame(() => {
+				try {
+					var saved_worksheet = localStorage.getItem("worksheet");
+					if (!saved_worksheet) {
+						throw "Initializing worksheet";
+					}
+					saved_worksheet = JSON.parse(saved_worksheet);
+					for (var i=0; i<saved_worksheet.length; ++i) {
+						this.selectCRN({
+							detail: {
+								selected: true,
+								crn: saved_worksheet[i]
+							}
+						});
+					}
+				} catch(e) {
+					console.warn(e);
+				}
+				saveWorkSheet();
+			});
+		}
+	});
+	</script>
+
+</dom-module>
+</html>

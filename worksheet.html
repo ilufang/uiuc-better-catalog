@@ -2,7 +2,6 @@
 <head>
 	<title>Better Course Explorer</title>
 	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-	<link href="elements/registration-app.html" rel="import">
 	<script type="text/javascript">
 	console.log("Main frame loaded.");
 	Catalog = require('catalog');
@@ -20,7 +19,8 @@
 		console.log("Catalog loaded.");
 	}
 	</script>
+	<link href="elements/registration-worksheet.html" rel="import">
 </head>
 <body fullbleed unresolved>
-	<registration-app></registration-app>
+	<registration-worksheet></registration-worksheet>
 </body>
