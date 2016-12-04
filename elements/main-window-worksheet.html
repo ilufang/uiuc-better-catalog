@@ -337,8 +337,8 @@
 		</style>
 		<paper-header-panel mode="waterfall" shadow>
 			<paper-toolbar id="header">
-				<paper-icon-button icon="menu" id="toggle_menu"></paper-icon-button>
-				<paper-tooltip  for="toggle_menu" position="bottom" animation-delay="0">Toggle Sidebar</paper-tooltip>
+				<paper-icon-button icon="arrow-back" id="toggle_menu"></paper-icon-button>
+				<paper-tooltip  for="toggle_menu" position="bottom" animation-delay="0">Back to explorer</paper-tooltip>
 				<div class="title">Timetable Worksheet</div>
 			</paper-toolbar>
 			<div id="container">
@@ -419,7 +419,7 @@
 		detached: function() {
 		},
 		toggleMenu: function() {
-			this.fire('menu-toggle');
+			this.fire('select-page', {page:"course"});
 		},
 		hideDay: function(d) {
 			var days = "mtwrf";

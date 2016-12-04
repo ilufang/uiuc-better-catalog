@@ -28,7 +28,7 @@ function similar(a, b){
 	if (!a || !b)
 		return false;
 	var len = a.length / b.length;
-	if (len > 3/2 || len < 2/3 || a.length<5 || b.length<5)
+	if (len > 2 || len < 0.5 || a.length<5 || b.length<5)
 		return false;
 	var current = 0, longest = 0;
 	for (var i=0; i<a.length; i++) {
@@ -122,7 +122,10 @@ function relevance(haystack, needle) {
 				notify: true,
 				observer: "setContent"
 			},
-			owner: Object,
+			value: {
+				type: String,
+				reflectToAttribute: true
+			},
 			disabled: {
 				type: Boolean,
 				reflectToAttribute: true,
@@ -134,11 +137,14 @@ function relevance(haystack, needle) {
 			this.$.content.innerHTML = content;
 		},
 		ready: function(e) {
-			this.$.main.addEventListener("click", (function(e){
-				if (this.owner) {
-					this.owner.search(this.caption, "jump");
-				}
-			}).bind(this)) ;
+			this.listen(this.$.main, "tap", "clicked");
+		},
+		clicked: function() {
+			var keyword = this.value;
+			if (!keyword || keyword.length==0) {
+				keyword = this.caption;
+			}
+			this.fire("cell-clicked", {keyword});
 		}
 	});
 	</script>
@@ -161,8 +167,8 @@ function relevance(haystack, needle) {
 			overflow: auto;
 		}
 		paper-input {
-			--paper-input-container-color: rgba(0,0,0,0,0);
-			--paper-input-container-focus-color: rgba(0,0,0,0,0);
+			--paper-input-container-color: rgba(0,0,0,0);
+			--paper-input-container-focus-color: rgba(0,0,0,0);
 		}
 		#searchbox_btn {
 			--paper-icon-button-disabled-text: #000;
@@ -202,6 +208,9 @@ function relevance(haystack, needle) {
 			},
 			locked: Boolean // Unused
 		},
+		listeners: {
+			"cell-clicked": "search"
+		},
 		ready: function(e) {
 			this.$.searchbox_form.addEventListener("submit", (function(e) {
 				e.preventDefault();
@@ -220,14 +229,12 @@ function relevance(haystack, needle) {
 				this.search(value, 'input');
 			}
 		},
-		search: function(key, src) {
-			if (catalog.getCourse(key)) {
-				this.fire('course-select', {code: key});
-				if (src == 'jump') {
-					return;
+		search: function(key) {
+			if (key instanceof Event) {
+				key = key.detail.keyword;
+				if (catalog.getCourse(key)) {
+					this.fire('course-select', {code: key});
 				}
-			}
-			if (this.searchword != key) {
 				this.searchword = key;
 				return;
 			}
@@ -243,8 +250,7 @@ function relevance(haystack, needle) {
 				var course = catalog.getCourse(key);
 				this.$.results.innerHTML = '';
 				var cell = generateCourseCell(course);
-				cell.owner = this;
-				this.$.results.appendChild(cell);
+				Polymer.dom(this.$.results).appendChild(cell);
 				return;
 			}
 			// Perform search
@@ -277,12 +283,12 @@ function relevance(haystack, needle) {
 				cell.caption = item.dept;
 				cell.description = catalog.courses[item.dept].name;
 				cell.owner = this;
-				this.$.results.appendChild(cell);
+				Polymer.dom(this.$.results).appendChild(cell);
 			}).bind(this));
 			course_result.forEach(((item) => {
 				var cell = generateCourseCell(item.course);
 				cell.owner = this;
-				this.$.results.appendChild(cell);
+				Polymer.dom(this.$.results).appendChild(cell);
 			}).bind(this));
 		},
 		populateDepts: function() {
@@ -301,7 +307,7 @@ function relevance(haystack, needle) {
 				*/
 				cell.description = dept.name;
 				cell.owner = this;
-				this.$.results.appendChild(cell);
+				Polymer.dom(this.$.results).appendChild(cell);
 			}
 		},
 		populateDept: function(dept) {
@@ -314,7 +320,7 @@ function relevance(haystack, needle) {
 				}
 				var cell = generateCourseCell(course);
 				cell.owner = this;
-				this.$.results.appendChild(cell);
+				Polymer.dom(this.$.results).appendChild(cell);
 			}
 		}
 	});

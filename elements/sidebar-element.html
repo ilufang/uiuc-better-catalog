@@ -48,16 +48,10 @@
 			selected: {
 				type: Number,
 				value: 0,
-				reflectToAttribute: true,
-				notify: true,
-				observer: "selectPage"
+				reflectToAttribute: true
 			}
 		},
 		ready: function(e){
-		},
-		selectPage: function(page) {
-			pages = ["course","worksheet"];
-			this.fire("select-page", {page:pages[page]});
 		}
 	});
 	</script>
