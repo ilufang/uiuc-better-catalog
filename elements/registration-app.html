@@ -29,7 +29,7 @@
 			background-color: #cacaca;
 		}
 		</style>
-		<paper-drawer-panel id="main_drawer" right-drawer drawer-width="350px">
+		<paper-drawer-panel id="main_drawer" drawer-width="350px">
 			<div main class="fullbleed layout vertical" id="drawer_main_panel">
 				<main-window-description id="course"></main-window-description>
 				<main-window-worksheet id="worksheet" style="display: none"></main-window-worksheet>
@@ -54,7 +54,7 @@
 			},
 			bookmarkUpdated: {
 				type:Boolean,
-				value: false
+				value: true // Bookmark is not inflated at startup
 			}
 		},
 		listeners: {
@@ -66,7 +66,7 @@
 				this.$.course.course = e.detail.code;
 			});
 			// Set z-index to force the drawer to cover favorite fab
-			this.$.main_drawer.$.drawer.style.zIndex = "10";
+			this.$.main_drawer.$.drawer.style.zIndex = "11";
 			this.$.main_drawer.$.scrim.style.zIndex = "10";
 			this.boundBookmarkObserver = this.bookmarkObserver.bind(this);
 		},

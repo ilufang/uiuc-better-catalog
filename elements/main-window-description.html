@@ -39,12 +39,9 @@
 			#sync {
 				opacity: 0.6;
 				transform: scale(0.6,0.6);
-				transform-origin: left top;
-			}
-			#toggle_menu {
 				position: absolute;
-				right: 0px;
-				top: 0.7em;
+				right: 1em;
+				top: 1em;
 			}
 			#fab_fav {
 				position: absolute;
@@ -85,12 +82,12 @@
 		<paper-header-panel mode="waterfall-tall" shadow>
 			<paper-toolbar id="header-toolbar">
 				<div class="top">
+					<paper-icon-button icon="menu" id="toggle_menu"></paper-icon-button>
+					<paper-tooltip for="toggle_menu" position="bottom" animation-delay="0">Toggle Sidebar</paper-tooltip>
 					<div id="sync">
 						<iron-icon icon="[[syncicon]]"></iron-icon>
 						<i id="syncstatus">[[syncstatus]]</i>
 					</div>
-					<paper-icon-button icon="menu" id="toggle_menu"></paper-icon-button>
-					<paper-tooltip for="toggle_menu" position="bottom" animation-delay="0">Toggle Sidebar</paper-tooltip>
 				</div>
 				<span class="middle" id="toolbar-sub"></span>
 				<div class="bottom title" id="toolbar-title">

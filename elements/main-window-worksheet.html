@@ -334,17 +334,12 @@
 				font-size: 0.8em;
 				color: #666;
 			}
-			#toggle_menu {
-				position: absolute;
-				right: 0px;
-				top: 0.7em;
-			}
 		</style>
 		<paper-header-panel mode="waterfall" shadow>
 			<paper-toolbar id="header">
-				<div class="title">Timetable Worksheet</div>
 				<paper-icon-button icon="menu" id="toggle_menu"></paper-icon-button>
 				<paper-tooltip  for="toggle_menu" position="bottom" animation-delay="0">Toggle Sidebar</paper-tooltip>
+				<div class="title">Timetable Worksheet</div>
 			</paper-toolbar>
 			<div id="container">
 				<div id="thead">
@@ -420,11 +415,8 @@
 			this.addEventListener("section-selected", this.selectCRN.bind(this));
 		},
 		attached: function() {
-			// Inflate contents
-			this.updateBookmark();
 		},
 		detached: function() {
-
 		},
 		toggleMenu: function() {
 			this.fire('menu-toggle');
