@@ -100,10 +100,12 @@
 				this.$[prev].style.display = "none";
 			this.$[page].style.display = "";
 
-			if (page == "worksheet" && this.bookmarkUpdated) {
+			if (page == "worksheet") {
 				this.$.main_drawer.forceNarrow = true;
-				this.$.worksheet.updateBookmark();
-				this.bookmarkUpdated = false;
+				if (this.bookmarkUpdated) {
+					this.$.worksheet.updateBookmark();
+					this.bookmarkUpdated = false;
+				}
 			}
 			if (page == "course") {
 				this.$.main_drawer.forceNarrow = false;

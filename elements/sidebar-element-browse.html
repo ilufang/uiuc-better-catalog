@@ -251,6 +251,7 @@ function relevance(haystack, needle) {
 				this.$.results.innerHTML = '';
 				var cell = generateCourseCell(course);
 				Polymer.dom(this.$.results).appendChild(cell);
+				this.fire('course-select', {code: key});
 				return;
 			}
 			// Perform search
