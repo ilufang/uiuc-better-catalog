@@ -139,7 +139,8 @@ function relevance(haystack, needle) {
 		ready: function(e) {
 			this.listen(this.$.main, "tap", "clicked");
 		},
-		clicked: function() {
+		clicked: function(e) {
+			e.stopPropagation();
 			var keyword = this.value;
 			if (!keyword || keyword.length==0) {
 				keyword = this.caption;
