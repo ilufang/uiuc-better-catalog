@@ -16,7 +16,7 @@
 
 	<link rel="import" type="text/html" href="sidebar-element.html">
 	<link rel="import" type="text/html" href="main-window-description.html">
-	<link rel="import" type="text/html" href="course-description.html">
+	<link rel="import" type="text/html" href="main-window-worksheet.html">
 </head>
 
 <dom-module id="registration-app">
@@ -29,10 +29,10 @@
 			background-color: #cacaca;
 		}
 		</style>
-		<paper-drawer-panel id="main_drawer" right-drawer drawer-width="350px">
-			<div main class="fullbleed layout vertical">
+		<paper-drawer-panel id="main_drawer" drawer-width="350px">
+			<div main class="fullbleed layout vertical" id="drawer_main_panel">
 				<main-window-description id="course"></main-window-description>
-				<!-- <course-description id="course"></course-description> -->
+				<main-window-worksheet id="worksheet" style="display: none"></main-window-worksheet>
 			</div>
 			<paper-material drawer elevation="3" class="layout fullbleed vertical">
 				<sidebar-element id="sidebar" class="flex">
@@ -45,14 +45,71 @@
 	Polymer({
 		is: "registration-app",
 		properties: {
-
+			page: {
+				type: String,
+				value: "course",
+				reflectToAttribute: true,
+				notify: true,
+				observer: "selectPage"
+			},
+			bookmarkUpdated: {
+				type:Boolean,
+				value: true // Bookmark is not inflated at startup
+			}
+		},
+		listeners: {
+			"menu-toggle": "toggleMenu",
+			"select-page": "selectPage"
 		},
 		ready: function(e) {
 			this.$.sidebar.addEventListener('course-select', (e) => {
 				this.$.course.course = e.detail.code;
 			});
 			// Set z-index to force the drawer to cover favorite fab
-			this.$.main_drawer.$.drawer.style.zIndex = "10";
+			this.$.main_drawer.$.drawer.style.zIndex = "11";
+			this.$.main_drawer.$.scrim.style.zIndex = "10";
+			this.boundBookmarkObserver = this.bookmarkObserver.bind(this);
+		},
+		attached: function() {
+			bookmark.addListener("bookmark-changed", this.boundBookmarkObserver);
+		},
+		detached: function() {
+			bookmark.removeListener("bookmark-changed", this.boundBookmarkObserver);
+		},
+		bookmarkObserver: function() {
+			this.bookmarkUpdated = true;
+		},
+		toggleMenu: function() {
+			if (window.innerWidth <= 768) {
+				// The drawer cannot be widened. Just toggle in this case
+				this.$.main_drawer.togglePanel();
+			} else {
+				this.$.main_drawer.forceNarrow = !this.$.main_drawer.forceNarrow;
+			}
+		},
+		selectPage: function(page, prev) {
+			if (page instanceof Event) {
+				this.page = page.detail.page;
+				return;
+			}
+			if (!this.$[page]) {
+				alert("Page " + page +" does not exist!");
+				throw "Page " + page +" does not exist!";
+			}
+			if (prev && this.$[prev])
+				this.$[prev].style.display = "none";
+			this.$[page].style.display = "";
+
+			if (page == "worksheet") {
+				this.$.main_drawer.forceNarrow = true;
+				if (this.bookmarkUpdated) {
+					this.$.worksheet.updateBookmark();
+					this.bookmarkUpdated = false;
+				}
+			}
+			if (page == "course") {
+				this.$.main_drawer.forceNarrow = false;
+			}
 		}
 	});
 	</script>
