@@ -167,8 +167,9 @@ function relevance(haystack, needle) {
 			overflow: auto;
 		}
 		paper-input {
-			--paper-input-container-color: rgba(0,0,0,0);
-			--paper-input-container-focus-color: rgba(0,0,0,0);
+			/* Tricking css: passing invalid value defaults everything to browser default: no border with visible placeholder text */
+			--paper-input-container-color: none;
+			--paper-input-container-focus-color: none;
 		}
 		#searchbox_btn {
 			--paper-icon-button-disabled-text: #000;
@@ -298,15 +299,11 @@ function relevance(haystack, needle) {
 				var dept = catalog.courses[dept_code];
 				var cell = document.createElement('sidebar-search-result-cell');
 				cell.caption = dept_code;
-				/*
-				var course_count = -1; // Exclude the `name` property
-				for (course in dept)
-					++course_count;
+				var course_count = Object.keys(dept).length-1; // Exclude the `name` property
 				var description = `${dept.name}<br />\n${course_count} course`;
 				if (course_count > 1)
 					description += 's'; // Plural
-				*/
-				cell.description = dept.name;
+				cell.description = description;
 				cell.owner = this;
 				Polymer.dom(this.$.results).appendChild(cell);
 			}

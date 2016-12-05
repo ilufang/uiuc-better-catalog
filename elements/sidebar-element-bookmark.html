@@ -1,6 +1,7 @@
 <link rel="import" href="../bower_components/polymer/polymer.html" />
 <link rel="import" href="../bower_components/paper-fab/paper-fab.html" />
 <link rel="import" href="../bower_components/iron-icons/notification-icons.html">
+<link rel="import" href="../bower_components/paper-tooltip/paper-tooltip.html">
 
 <link rel="import" href="sidebar-element-browse.html" />
 
@@ -16,16 +17,20 @@
 		</style>
 		<div id="list"></div>
 		<paper-fab icon="notification:event-note" id="jmp"></paper-fab>
+		<paper-tooltip for="jmp" position="left" animation-delay="0">Go to calendar planner</paper-tooltip>
 	</template>
 	<script>
 	Polymer({
 		is: "sidebar-element-bookmark",
 		properties: {
-
+		},
+		listeners: {
+			"cell-clicked": "gotoCourse"
 		},
 		ready: function(e){
 			this.listen(this.$.jmp, "tap", "jump");
 			this.boundUpdateBookmark = this.updateBookmark.bind(this);
+			this.updateBookmark();
 		},
 		attached: function() {
 			bookmark.addListener("bookmark-changed", this.boundUpdateBookmark);
@@ -33,8 +38,15 @@
 		detached: function() {
 			bookmark.removeListener("bookmark-changed", this.boundUpdateBookmark);
 		},
+		gotoCourse: function(e) {
+			this.fire("course-select", {code:e.detail.keyword});
+		},
 		updateBookmark: function() {
-
+			this.$.list.innerHTML = "";
+			for (var course in bookmark.data) {
+				var cell = generateCourseCell(catalog.getCourse(course));
+				Polymer.dom(this.$.list).appendChild(cell);
+			}
 		},
 		jump: function() {
 			this.fire("select-page", {page:"worksheet"});

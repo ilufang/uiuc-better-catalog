@@ -334,11 +334,18 @@
 				font-size: 0.8em;
 				color: #666;
 			}
+			.td-name code.summarycrn {
+				font-weight: bold;
+				position: absolute;
+				top: 0.5em;
+				left: initial;
+				right: 0px;
+			}
 		</style>
 		<paper-header-panel mode="waterfall" shadow>
 			<paper-toolbar id="header">
 				<paper-icon-button icon="arrow-back" id="toggle_menu"></paper-icon-button>
-				<paper-tooltip  for="toggle_menu" position="bottom" animation-delay="0">Back to explorer</paper-tooltip>
+				<paper-tooltip for="toggle_menu" position="bottom" animation-delay="0">Back to explorer</paper-tooltip>
 				<div class="title">Timetable Worksheet</div>
 			</paper-toolbar>
 			<div id="container">
@@ -396,6 +403,9 @@
 		is: "main-window-worksheet",
 		properties: {
 		},
+		listeners: {
+			"section-selected": "deferredSelectCRN"
+		},
 		ready: function() {
 			// Inflate legends
 			var days = "mtwrf";
@@ -411,8 +421,6 @@
 				this.$["th-"+days[d]].addEventListener("click", this.hideDay.bind(this, d));
 			}
 			this.listen(this.$.toggle_menu, "tap", "toggleMenu");
-			// Listener
-			this.addEventListener("section-selected", this.selectCRN.bind(this));
 		},
 		attached: function() {
 		},
@@ -453,6 +461,11 @@
 				});
 			}
 		},
+		deferredSelectCRN: function(e) {
+			setTimeout((()=>{
+				this.selectCRN(e);
+			}).bind(this), 200);
+		},
 		selectCRN: function(e) {
 			var crn = e.detail.crn, selected = e.detail.selected;
 			// Reject invalid selects
@@ -474,14 +487,20 @@
 			}
 			// Single selection: reset other selected crns in the current section
 			var course = crnsections[crn].course, type = crnsections[crn].type;
+			var san_course = course.replace(/ /g, ''), san_type = type.replace(/\//g, '_').replace(/ /g, '');
 			bookmark.data[course][type].forEach((bmcrn) => {
 				if (worksheet[bmcrn] == "selected") {
 					worksheet[bmcrn] = "available";
 					document.querySelectorAll(`#tbody worksheet-section[crn="${bmcrn}"]`).forEach((item) => {
 						item.selected = false;
 					});
+					this.querySelectorAll(`#thead worksheet-section[crn="${bmcrn}"]`).forEach((item) => {
+						item.style.opacity = "0.0";
+					});
+					this.querySelector(`tr#tr-${bmcrn} div.td-name`).style.fontWeight="";
 				}
 			});
+
 			// Make the selection
 			if (selected) {
 				worksheet[crn] = "selected";
@@ -492,11 +511,15 @@
 				this.querySelectorAll(`#thead worksheet-section[crn="${crn}"]`).forEach((item) => {
 					item.style.opacity = "1.0";
 				});
+				this.querySelector(`#summarycrn-${san_course}-${san_type}`).innerText = `(${crn})`;
+				this.querySelector(`tr#tr-${crn} div.td-name`).style.fontWeight="bold";
 			} else {
 				// Update thead section
 				this.querySelectorAll(`#thead worksheet-section[crn="${crn}"]`).forEach((item) => {
 					item.style.opacity = "0.0";
 				});
+				this.querySelector(`#summarycrn-${san_course}-${san_type}`).innerText = "";
+				this.querySelector(`tr#tr-${crn} div.td-name`).style.fontWeight="";
 			}
 			// Calculate conflicts
 			for (var wscrn in worksheet) {
@@ -617,7 +640,7 @@
 
 					var master_name = document.createElement("td");
 					var master_namediv = document.createElement("div");
-					master_namediv.innerHTML = `<strong>${course}</strong><br /><i>${type}</i>`;
+					master_namediv.innerHTML = `<strong>${course}</strong><code class="summarycrn" id="summarycrn-${san_course}-${san_type}"></code><br /><i>${type}</i>`;
 					master_namediv.className = "td-name";
 					Polymer.dom(master_namediv).appendChild(document.createElement("paper-ripple"));
 					master_namediv.addEventListener("click", ((course, type) => {
@@ -646,7 +669,7 @@
 						name_div.className = "td-name";
 						name_div.innerHTML = `<code>${crnobj.section} (${crnobj.crn})</code>`;
 						Polymer.dom(name_div).appendChild(document.createElement("paper-ripple"));
-						/*
+
 						name_div.addEventListener("click", ((crn)=>{
 							this.selectCRN({
 								detail: {
@@ -655,7 +678,7 @@
 								}
 							});
 						}).bind(this,crnobj.crn));
-						*/
+
 						Polymer.dom(name_cell).appendChild(name_div);
 						Polymer.dom(row).appendChild(name_cell);
 						for (var i=0; i<days.length; ++i) {
@@ -704,7 +727,7 @@
 				}
 			}
 			// Restore selections & conflicts
-			requestAnimationFrame(() => {
+			requestAnimationFrame((() => {
 				try {
 					var saved_worksheet = localStorage.getItem("worksheet");
 					if (!saved_worksheet) {
@@ -723,7 +746,7 @@
 					console.warn(e);
 				}
 				saveWorkSheet();
-			});
+			}).bind(this));
 		}
 	});
 	</script>
