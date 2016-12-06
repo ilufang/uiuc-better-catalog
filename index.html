@@ -2,7 +2,14 @@
 <head>
 	<title>Better Course Explorer</title>
 	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-	<link href="elements/registration-app.html" rel="import">
+	<link href="elements/registration-app.html" rel="import" />
+	<script type="text/javascript">
+	window.uiucexp = {
+		version: "1.0.0"
+	};
+	Updator = require('updator');
+	Updator.check();
+	</script>
 	<script type="text/javascript">
 	console.log("Main frame loaded.");
 	Catalog = require('catalog');
