@@ -623,6 +623,12 @@
 			this.querySelectorAll(`#thead worksheet-section[crn="${crn}"]`).forEach((item) => {
 				item.remove();
 			});
+			var days = "mtwrf";
+			for (var i=0; i<days.length; ++i) {
+				this.querySelectorAll(".td-"+days[i]).forEach((item) => {
+					item.style.width = "";
+				});
+			}
 
 			// Create sections
 			for (var course in bookmark.data) {
@@ -658,7 +664,8 @@
 					}
 					Polymer.dom(this.$.seclist).appendChild(master_tr);
 					// Insert all CRNs
-					secobj.forEach((crnobj) => {
+					bookmark.data[course][type].forEach((crn) => {
+						var crnobj = catalog.sections[crn];
 						var row = document.createElement("tr");
 						row.className = "tr-detail tr-"+san_course+"-"+san_type;
 						row.id = "tr-"+crnobj.crn;

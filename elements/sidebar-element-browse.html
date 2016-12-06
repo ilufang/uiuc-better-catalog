@@ -236,6 +236,7 @@ function relevance(haystack, needle) {
 				key = key.detail.keyword;
 				if (catalog.getCourse(key)) {
 					this.fire('course-select', {code: key});
+					return;
 				}
 				this.searchword = key;
 				return;
