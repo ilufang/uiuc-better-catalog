@@ -2,7 +2,7 @@
 
 **A responsive and intuitive desktop course explorer & calendar planner, in Material Design, made with Electron and Polymer.**
 
-**Download for Windows/Linux/MacOS: [See release page](uiuc-better-catalog/releases)**
+**Download for Windows/Linux/MacOS: [See release page](https://github.com/ilufang/uiuc-better-catalog/releases)**
 
 *Notice: The current repository is the version as of the end of the ENG198 course. Not fully tested & optimized. Expect bugs. We will continue to update this project and will release a (relatively) stable version by 1/20/2017*
 
@@ -25,7 +25,7 @@
 This project runs on [electron](http://electron.atom.io).
 
 1. Install [node.js](https://nodejs.org)
-2. Install [electron](http://electron.atom.io) using npm: `npm install -g electron-prebuilt` (you will need root to do this)
+2. Install [electron](http://electron.atom.io) using npm: `npm install -g electron-prebuilt`
 3. Install [bower](https://bower.io) for the dependency manager using npm: `npm install -g bower`
 4. Clone the repo or download zip. `cd` into the root of the repo
 5. Install bower dependencies: `bower install`
