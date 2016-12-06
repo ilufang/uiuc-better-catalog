@@ -16,9 +16,9 @@
 
 ## Screenshots
 
-![Screenshot of explorer](https://ilufang.github.io/uiuc-better-catalog/images/screenshot-1)
+![Screenshot of explorer](https://ilufang.github.io/uiuc-better-catalog/images/screenshot-1.png)
 
-![Screenshot of worksheet](https://ilufang.github.io/uiuc-better-catalog/images/screenshot-2)
+![Screenshot of worksheet](https://ilufang.github.io/uiuc-better-catalog/images/screenshot-2.png)
 
 ## Build/run from source
 
