@@ -20,7 +20,7 @@
 		log("Loaded from directory.");
 	}
 	function loadFromJson() {
-		var obj = JSON.parse(fs.readFileSync('data/courses.json'));
+		var obj = JSON.parse(fs.readFileSync(__dirname+'/data/courses.json'));
 		catalog = Catalog.fromStorage(new ioutils.json_io(obj));
 		log("Loaded from JSON file.");
 	}
@@ -36,7 +36,7 @@
 	function writeToJson() {
 		var io = new ioutils.json_io();
 		catalog.save(io);
-		fs.writeFileSync('data/courses.json', JSON.stringify(io.data));
+		fs.writeFileSync(__dirname+'/data/courses.json', JSON.stringify(io.data));
 		log("Saved to JSON file.");
 	}
 	function goback() {
