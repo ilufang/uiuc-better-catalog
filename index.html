@@ -1,26 +1,16 @@
+<!DOCTYPE html>
 <html>
 <head>
-	<title>Better Course Explorer</title>
-	<script src="bower_components/webcomponentsjs/webcomponents-lite.min.js"></script>
-	<link href="elements/registration-app.html" rel="import">
-	<script type="text/javascript">
-	console.log("Main frame loaded.");
-	Catalog = require('catalog');
-	Bookmark = require('bookmark');
-	if (!localStorage.getItem('index')) {
-		location.assign('data-helper.html#autorestore');
-	} else {
-		console.log("Loading catalog...");
-		Catalog.inst = Catalog.fromLocalStorage(); // TODO
-		window.catalog = Catalog.inst;
-		if (!localStorage.getItem("bookmark")) {
-			localStorage.setItem("bookmark", "{}");
-		}
-		window.bookmark = Bookmark.fromStorage(localStorage);
-		console.log("Catalog loaded.");
-	}
-	</script>
+	<meta charset="utf-8" />
+	<title>UIUC Improved Course Explorer</title>
 </head>
-<body fullbleed unresolved>
-	<registration-app></registration-app>
+<body>
+<a href="https://github.com/ilufang/uiuc-better-catalog" target="_self">Please click here if you are not automatically redirected</a>
+<script type="text/javascript"></script>
+<!--
+The index.html is not currently intended for web browser
+It contains node.js code that must be run in electron with node integration
+The app might be ported to the web browser in the future
+-->
 </body>
+</html>
