@@ -68,7 +68,7 @@
 			}
 			#container>span#legend {
 				text-align: left;
-				top: calc(100% - 1em); /* Align to bottom */
+				top: calc(100% - 2em); /* Align to bottom */
 				color: #ccc;
 				transform: scale(0.7,0.7);
 			}
@@ -598,9 +598,14 @@
 
 			for (var course in bookmark.data) {
 				for (var type in bookmark.data[course]) {
-					bookmark.data[course][type].forEach((crn) => {
+					bookmark.data[course][type].forEach((crn, arr, idx) => {
 						let crnobj = catalog.sections[crn];
-						crnsections[crnobj.crn] = { course, type };
+						if (crnobj) {
+							crnsections[crnobj.crn] = { course, type };
+						} else {
+							console.warn(`CRN ${crn} not found in index`);
+							arr.splice(idx,1);
+						}
 					});
 				}
 			}
