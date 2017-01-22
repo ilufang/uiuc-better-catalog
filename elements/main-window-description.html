@@ -6,6 +6,7 @@
 <link rel="import" href="../bower_components/paper-styles/color.html">
 
 <link rel="import" href="main-section-info.html">
+<link rel="import" href="uiucexp-welcome.html">
 
 <script type="text/javascript" src="palette.js"></script>
 
@@ -106,6 +107,7 @@
 				<hr />
 				<div class="content fit" id="sections"></div>
 			</div>
+			<uiucexp-welcome id="welcome"></uiucexp-welcome>
 		</paper-header-panel>
 	</template>
 	<script>
@@ -226,6 +228,7 @@
 			this.courseobj = course;
 			this.$.container.style.display = '';
 			this.$.fav.style.display = '';
+			this.$.welcome.remove();
 
 			this.dept = catalog.courses[course.dept].name;
 			this.name = course.title;

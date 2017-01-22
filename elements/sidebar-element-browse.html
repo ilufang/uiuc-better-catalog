@@ -53,7 +53,7 @@ function similar(a, b){
 function relevance(haystack, needle) {
 	if (haystack.trim() == needle.trim())
 		return 100; // Prefect match
-	var emptyword = /( |^)(the|\&|and|a|an|with|of|in|to|from|for|I|II|III)( |$)/g;
+	var emptyword = /( |^)(the|\&|and|a|an|with|of|in|to|at|from|for|I|II|III)( |$)/g;
 	haystack = haystack.toLowerCase().replace(emptyword," ").split(' ');
 	needle = needle.toLowerCase().replace(emptyword," ").split(' ');
 	var score = 0;
