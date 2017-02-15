@@ -1,0 +1,45 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="uiuc-settings-about">
+	<template>
+		<style type="text/css">
+		.container {
+			margin: 1em;
+		}
+		.text {
+			font-size: 1.2em;
+		}
+		</style>
+		<div class="container">
+		<h1>Improved Course Explorer for UIUC</h1>
+
+		<p id="version"></p>
+
+		<p class="text">A responsive and intuitive desktop course explorer &amp; calendar planner, in Material Design, made with Electron and Polymer.</p>
+
+		<p>&copy; 2016 - 2017 by ilufang (cc2lufang@gmail.com)</p>
+		<p>View on github: <a href="javascript:void(0)" id="link_gh">ilufang/uiuc-better-catalog</a></p>
+
+		</div>
+	</template>
+	<script>
+	Polymer({
+		is: "uiuc-settings-about",
+		properties: {
+		},
+		ready: function(e) {
+			this.listen(this.$.link_gh, 'tap', 'opengithub');
+
+			// Inflate version info
+			this.$.version.innerText = 'Version ' + Updator.local_ver;
+		},
+		opengithub: function() {
+			if (!window.electron)
+				window.electron = require("electron");
+			electron.shell.openExternal("https://github.com/ilufang/uiuc-better-catalog");
+		}
+	});
+	</script>
+
+</dom-module>
+</html>

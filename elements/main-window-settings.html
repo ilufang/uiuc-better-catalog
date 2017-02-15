@@ -7,7 +7,9 @@
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
 
-<link rel="import" href="uiucexp-welcome.html" />
+<link rel="import" href="settings/about.html" />
+<link rel="import" href="settings/general.html" />
+<link rel="import" href="settings/database.html" />
 
 <script type="text/javascript" src="palette.js"></script>
 
@@ -53,15 +55,9 @@
 			</paper-toolbar>
 
 			<neon-animated-pages id="pages" selected="[[page]]">
-				<section name="about">
-					about...
-				</section>
-				<section name="general">
-					general...
-				</section>
-				<section name="database">
-					database...
-				</section>
+				<uiuc-settings-about name="about"></uiuc-settings-about>
+				<uiuc-settings-general name="general"></uiuc-settings-general>
+				<uiuc-settings-database name="database"></uiuc-settings-database>
 			</neon-animated-pages>
 
 		</paper-header-panel>

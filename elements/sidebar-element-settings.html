@@ -12,18 +12,24 @@
 			user-select: none;
 			-webkit-user-select: none;
 		}
+		paper-item > span {
+			margin-left: 16px;
+		}
 		</style>
 		<paper-menu id="menu" selected="{{page}}">
 			<paper-item name="about">
-				<iron-icon icon="info-outline"></iron-icon> About
+				<iron-icon icon="info-outline"></iron-icon>
+				<span>About</span>
 				<paper-ripple>
 			</paper-item>
 			<paper-item name="general">
-				<iron-icon icon="build"></iron-icon> General
+				<iron-icon icon="build"></iron-icon>
+				<span>General</span>
 				<paper-ripple>
 			</paper-item>
 			<paper-item name="database">
-				<iron-icon icon="cloud"></iron-icon> Database &amp; Sync
+				<iron-icon icon="cloud"></iron-icon>
+				<span>Database &amp; Sync</span>
 				<paper-ripple>
 			</paper-item>
 		</paper-menu>
