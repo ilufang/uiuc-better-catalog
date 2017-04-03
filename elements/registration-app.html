@@ -17,6 +17,7 @@
 	<link rel="import" type="text/html" href="sidebar-element.html">
 	<link rel="import" type="text/html" href="main-window-description.html">
 	<link rel="import" type="text/html" href="main-window-worksheet.html">
+	<link rel="import" type="text/html" href="main-window-settings.html">
 </head>
 
 <dom-module id="registration-app">
@@ -33,6 +34,7 @@
 			<div main class="fullbleed layout vertical" id="drawer_main_panel">
 				<main-window-description id="course"></main-window-description>
 				<main-window-worksheet id="worksheet" style="display: none"></main-window-worksheet>
+				<main-window-settings id="settings" style="display: none"></main-window-settings>
 			</div>
 			<paper-material drawer elevation="3" class="layout fullbleed vertical">
 				<sidebar-element id="sidebar" class="flex">
@@ -64,6 +66,9 @@
 		ready: function(e) {
 			this.$.sidebar.addEventListener('course-select', (e) => {
 				this.$.course.course = e.detail.code;
+			});
+			this.$.sidebar.addEventListener('settings-select', (e) => {
+				this.$.settings.page = e.detail.page;
 			});
 			// Set z-index to force the drawer to cover favorite fab
 			this.$.main_drawer.$.drawer.style.zIndex = "11";

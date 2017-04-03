@@ -1,0 +1,102 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../bower_components/neon-animation/neon-animated-pages.html">
+
+<link rel="import" href="settings/about.html" />
+<link rel="import" href="settings/general.html" />
+<link rel="import" href="settings/database.html" />
+
+<script type="text/javascript" src="palette.js"></script>
+
+<style is="custom-style">
+:root{
+	paper-toolbar{
+		--paper-toolbar-title:{
+			font-size:20pt;
+			height:auto;
+		};
+	}
+}
+</style>
+
+<dom-module id="main-window-settings">
+	<template>
+		<style type="text/css">
+			:host {
+				font-family: sans-serif;
+				user-select: none;
+				-webkit-user-select: none;
+			}
+			#toolbar-title {
+				margin-left: 0px;
+				font-weight: bold;
+			}
+			#container {
+				margin: 1em;
+			}
+		</style>
+		<paper-header-panel mode="waterfall-tall" shadow>
+			<paper-toolbar id="header-toolbar">
+				<div class="top">
+					<paper-icon-button icon="menu" id="toggle_menu"></paper-icon-button>
+					<paper-tooltip for="toggle_menu" position="bottom" animation-delay="0">Toggle Sidebar</paper-tooltip>
+				</div>
+				<span class="middle" id="toolbar-sub"><h3>Settings</h3></span>
+				<div class="bottom title" id="toolbar-title"></div>
+				<div style="display: none" id="fav">
+					<paper-fab id="fab_fav" icon="star"></paper-fab>
+					<paper-tooltip id="tip_fav" for="fab_fav" position="top" animation-delay="0">[[fav_tooltip]]</paper-tooltip>
+				</div>
+			</paper-toolbar>
+
+			<neon-animated-pages id="pages" selected="[[page]]">
+				<uiuc-settings-about name="about"></uiuc-settings-about>
+				<uiuc-settings-general name="general"></uiuc-settings-general>
+				<uiuc-settings-database name="database"></uiuc-settings-database>
+			</neon-animated-pages>
+
+		</paper-header-panel>
+	</template>
+	<script>
+	Polymer({
+		is: "main-window-settings",
+		properties: {
+			page: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setPage"
+			}
+		},
+		ready: function(e) {
+			this.$.pages.attrForSelected="name";
+			this.$.pages.entryAnimation="fade-in-animation";
+			this.$.pages.exitAnimation="fade-out-animation";
+			this.page = "about"; // Selection will not work until attrForSelected is set properly
+		},
+		setPage: function(page) {
+			switch(page) {
+				case "about":
+					this.$["toolbar-title"].innerText = "About";
+					break;
+				case "general":
+					this.$["toolbar-title"].innerText = "General";
+					break;
+				case "database":
+					this.$["toolbar-title"].innerText = "Database & Sync";
+					break;
+				default:
+					this.$["toolbar-title"].innerText = page;
+			}
+		}
+
+	});
+	</script>
+
+</dom-module>
+</html>

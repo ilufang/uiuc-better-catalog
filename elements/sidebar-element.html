@@ -4,10 +4,12 @@
 	<link rel="import" href="../bower_components/polymer/polymer.html">
 	<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
 	<link rel="import" href="../bower_components/paper-tabs/paper-tabs.html">
+	<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 	<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 	<link rel="import" href="../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
 	<link rel="import" href="sidebar-element-browse.html">
 	<link rel="import" href="sidebar-element-bookmark.html">
+	<link rel="import" href="sidebar-element-settings.html">
 </head>
 <style is="custom-style">
 :root{
@@ -29,15 +31,29 @@
 		iron-pages {
 			display: flex;
 		}
+		paper-tab {
+			width: 33.3%;
+		}
+		paper-tab span {
+			display: none;
+		}
+		paper-tab:hover iron-icon {
+			display: none;
+		}
+		paper-tab:hover span {
+			display: block;
+		}
 		</style>
 		<div class="layout vertical" style="height:100%">
 			<paper-tabs selected="{{selected}}">
-				<paper-tab>Search</paper-tab>
-				<paper-tab>Bookmarks</paper-tab>
+				<paper-tab><iron-icon icon="class"></iron-icon><span>Courses</span></paper-tab>
+				<paper-tab><iron-icon icon="star"></iron-icon><span>Bookmarks</span></paper-tab>
+				<paper-tab><iron-icon icon="settings"></iron-icon><span>Settings</span></paper-tab>
 			</paper-tabs>
-			<iron-pages selected="{{selected}}" class="layout vertical">
+				<iron-pages selected="{{selected}}" class="layout vertical">
 				<sidebar-element-browse></sidebar-element-browse>
 				<sidebar-element-bookmark></sidebar-element-bookmark>
+				<sidebar-element-settings></sidebar-element-settings>
 			</iron-pages>
 		</div>
 	</template>
@@ -48,10 +64,25 @@
 			selected: {
 				type: Number,
 				value: 0,
-				reflectToAttribute: true
+				reflectToAttribute: true,
+				notify: true,
+				observer: "switchTab"
 			}
 		},
 		ready: function(e){
+		},
+		switchTab: function(tab) {
+			switch(tab) {
+				case 0:
+				case 1:
+					this.fire("select-page", {page: "course"});
+					break;
+				case 2:
+					this.fire("select-page", {page: "settings"});
+					break;
+				default:
+					console.warn("Unknown tab "+tab);
+			}
 		}
 	});
 	</script>

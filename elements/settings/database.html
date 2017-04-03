@@ -1,0 +1,138 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/paper-progress/paper-progress.html">
+
+<dom-module id="uiuc-settings-database">
+	<template>
+		<style type="text/css">
+		.container {
+			margin: 1em;
+		}
+		#setterm {
+			background-color: #3f51b5;
+			color: #fff;
+			margin: 1em 0px;
+		}
+		label {
+			font-weight: bold;
+		}
+		#console {
+			display: block;
+			margin: 1em;
+			max-height: 8em;
+			overflow: auto;
+		}
+		#console .warn {
+			color: #ef6c00; /*--paper-orange-800*/
+		}
+		#console .error {
+			color: #f00;
+		}
+		#console .info {
+			font-weight: bold;
+		}
+		#progress {
+			display: block;
+			width: 100%;
+			margin: 1em 0px;
+		}
+		#progress {
+			--paper-progress-active-color: var(--google-green-500);
+			--paper-progress-disabled-active-color: var(--google-red-500);
+		}
+		</style>
+		<div class="container">
+			<label>Switch Semesters</label><hr />
+			<div class="layout flex horizontal">
+				<paper-input label="Term" value="{{term}}"></paper-input>
+				<paper-button raised on-tap="setterm" id="setterm"><iron-icon icon="refresh"></iron-icon> Update Term</paper-button>
+			</div>
+			<paper-progress id="progress" value="0" class="green"></paper-progress>
+			<code id="console"></code>
+			<label>Database backup &amp; restore</label><hr />
+			<a href="../../data-helper.html" target="_self">Data Migration Helper</a>
+			<!-- WIP -->
+		</div>
+	</template>
+	<script>
+	var Catalog = require("catalog");
+	Polymer({
+		is: "uiuc-settings-database",
+		properties: {
+			term: {
+				type: "String",
+			}
+		},
+		ready: function(e) {
+			Object.assign(this.console, {
+				log: this.console.message.bind(this, "log"),
+				warn: this.console.message.bind(this, "warn"),
+				info: this.console.message.bind(this, "info"),
+				error: this.console.message.bind(this, "error"),
+			});
+			this.console.clear = this.console.clear.bind(this);
+
+			this.console.warn("Setting the term will DESTROY the catalog database.");
+			this.console.warn("Please backup data if you still want to access current data.");
+
+		},
+		setterm: function() {
+			if (!confirm("Setting the term will DESTROY the catalog database.\n"+
+				"It will take some time to build the new database online\n\n"+
+				"Are you sure you want to reset term?"))
+				return;
+
+			this.console.clear();
+			this.$.progress.disabled = false;
+			this.$.progress.value = 0;
+			this.$.progress.step = 1;
+			this.$.progress.indeterminate = true;
+
+			this.console.log("Constructing new database for term "+this.term);
+			var db_promise = Catalog.fromTerm(this.term, null, {
+				setTaskCount: (function(n) {
+					this.$.progress.max=n;
+					this.$.progress.indeterminate = false;
+				}).bind(this),
+				completeOne: (function() {
+					this.$.progress.value++;
+				}).bind(this),
+				console: this.console
+			});
+			db_promise.then((new_cat) => {
+				this.$.progress.indeterminate = true;
+				this.console.info("Destroying previous database and installing new database...");
+				localStorage.clear();
+				new_cat.save(localStorage);
+				alert("Semester successfully updated.\n\nThe application will now restart");
+				location.reload();
+			}, (err) => {
+				this.$.progress.disabled = true;
+				this.$.progress.max = 100;
+				this.$.progress.value = 100;
+				this.$.progress.indeterminate = false;
+				this.console.error("Failed to build database.");
+				this.console.error(err);
+				this.console.info("Database is not modified.");
+			});
+
+		},
+		console: {
+			message: function(type, msg) {
+				var line = document.createElement("p");
+				line.className = type;
+				line.innerText = msg;
+				Polymer.dom(this.$.console).appendChild(line);
+				line.scrollIntoView();
+			},
+			clear: function() {
+				this.$.console.innerHTML = "";
+			}
+		}
+	});
+	</script>
+
+</dom-module>
+</html>

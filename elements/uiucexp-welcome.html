@@ -1,0 +1,40 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+
+<dom-module id="uiucexp-welcome">
+	<template>
+		<style type="text/css">
+		.container {
+			padding: 1em;
+		};
+		</style>
+		<div class="container">
+			<h1>Welcome to the Better Course Explorer for UIUC!</h1>
+			<p>To begin, try entering a course name or number in the search bar</p>
+		</div>
+	</template>
+	<script type="text/javascript">
+	Polymer({
+		is: "uiucexp-welcome",
+		properties: {
+			from: {
+				type: String,
+				value: "home",
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setContext"
+			}
+		},
+		setContext: function(ctx) {
+			switch(ctx) {
+				case "settings":
+					// Display from settings home
+					break;
+				case "home":
+				default:
+					// Display from home/splash
+			}
+		}
+	});
+	</script>
+</dom-module>
