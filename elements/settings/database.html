@@ -13,6 +13,9 @@
 		#setterm {
 			background-color: #3f51b5;
 			color: #fff;
+			float: right;
+		}
+		paper-button {
 			margin: 1em 0px;
 		}
 		label {
@@ -21,7 +24,7 @@
 		#console {
 			display: block;
 			margin: 1em;
-			max-height: 8em;
+			max-height: 14em;
 			overflow: auto;
 		}
 		#console .warn {
@@ -45,12 +48,16 @@
 		</style>
 		<div class="container">
 			<label>Switch Semesters</label><hr />
-			<div class="layout flex horizontal">
-				<paper-input label="Term" value="{{term}}"></paper-input>
+
+			<paper-input label="Term" value="{{term}}"></paper-input>
+			<div>
+				<paper-button raised on-tap="defterm"><iron-icon icon="date-range"></iron-icon> Get Current Term</paper-button>
 				<paper-button raised on-tap="setterm" id="setterm"><iron-icon icon="refresh"></iron-icon> Update Term</paper-button>
 			</div>
+
 			<paper-progress id="progress" value="0" class="green"></paper-progress>
 			<code id="console"></code>
+
 			<label>Database backup &amp; restore</label><hr />
 			<a href="../../data-helper.html" target="_self">Data Migration Helper</a>
 			<!-- WIP -->
@@ -62,7 +69,7 @@
 		is: "uiuc-settings-database",
 		properties: {
 			term: {
-				type: "String",
+				type: "String"
 			}
 		},
 		ready: function(e) {
@@ -74,14 +81,35 @@
 			});
 			this.console.clear = this.console.clear.bind(this);
 
-			this.console.warn("Setting the term will DESTROY the catalog database.");
-			this.console.warn("Please backup data if you still want to access current data.");
+			this.term = catalog.term;
 
+			this.console.warn("Setting the term will DESTROY the old catalog database.");
+			this.console.warn("Please backup data if you still want to access current data.");
+		},
+		initwizard: function() {
+			this.console.clear();
+			this.console.info("Welcome to UIUCExp!");
+			this.console.log("In order to provide the best experience, "+
+				" we need to first get a cached list of courses "+
+				"as the starting point of our database. "+
+				"We will not download the details of every course, "+
+				"so this initialization should only take about one minute.");
+			this.console.info("To begin constructing the database, " +
+				"click 'UPDATE TERM' followed by 'OK'");
+			this.defterm();
+		},
+		defterm: function() {
+			Catalog.getDefaultTerm().then((val) => {
+				this.term = val;
+			}).catch((e) => {
+				console.error(e);
+				this.console.error("Cannot get default term: "+e);
+			});
 		},
 		setterm: function() {
-			if (!confirm("Setting the term will DESTROY the catalog database.\n"+
+			if (!confirm("Setting the term will DESTROY the old catalog database.\n"+
 				"It will take some time to build the new database online\n\n"+
-				"Are you sure you want to reset term?"))
+				"Are you sure you want to set term?"))
 				return;
 
 			this.console.clear();

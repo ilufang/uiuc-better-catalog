@@ -12,7 +12,16 @@
 	Catalog = require('catalog');
 	Bookmark = require('bookmark');
 	if (!localStorage.getItem('index')) {
-		location.assign('data-helper.html#autorestore');
+		// location.assign('data-helper.html#autorestore');
+		window.catalog = new Catalog([], [], " ");
+		window.bookmark = new Bookmark([]);
+		window.addEventListener("load", () => {
+			// Launch db wizard
+			document.querySelector("sidebar-element").selected = 2; // Settings
+			document.querySelector("main-window-settings").page = "database";
+			document.querySelector("uiuc-settings-database").initwizard();
+
+		});
 	} else {
 		console.log("Loading catalog...");
 		Catalog.inst = Catalog.fromLocalStorage(); // TODO
