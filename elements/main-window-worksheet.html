@@ -108,8 +108,11 @@
 			color: String,
 			tooltip: {
 				type: String,
-				reflectToAttribute: true
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setTooltip"
 			},
+			_tooltip: String,
 			selected: {
 				type: Boolean,
 				reflectToAttribute: true,
@@ -184,6 +187,26 @@
 				var crnobj = catalog.sections[crn];
 			} else {
 				this.disabled = true;
+			}
+		},
+		setTooltip: function(tooltip, prevTooltip) {
+			var tmp = tooltip.trim();
+			if (tooltip!=tmp) {
+				this.tooltip = tmp;
+				return;
+			}
+			switch(tmp) {
+				case "(hide)":
+					this._tooltip = prevTooltip;
+					this.tooltip = "";
+					break;
+				case "(show)":
+					this.tooltip = this._tooltip;
+					break;
+				case "":
+					return;
+				default:
+					this._tooltip = tmp;
 			}
 		},
 		setBeginTime: function(time) {
@@ -502,6 +525,7 @@
 					});
 					this.querySelectorAll(`#thead worksheet-section[crn="${bmcrn}"]`).forEach((item) => {
 						item.style.opacity = "0.0";
+						item.tooltip = "(hide)";
 					});
 					this.querySelector(`tr#tr-${bmcrn} div.td-name`).style.fontWeight="";
 				}
@@ -516,6 +540,7 @@
 				// Update thead section
 				this.querySelectorAll(`#thead worksheet-section[crn="${crn}"]`).forEach((item) => {
 					item.style.opacity = "1.0";
+					item.tooltip = "(show)";
 				});
 				this.querySelector(`#summarycrn-${san_course}-${san_type}`).innerText = `(${crn})`;
 				this.querySelector(`tr#tr-${crn} div.td-name`).style.fontWeight="bold";
@@ -523,6 +548,7 @@
 				// Update thead section
 				this.querySelectorAll(`#thead worksheet-section[crn="${crn}"]`).forEach((item) => {
 					item.style.opacity = "0.0";
+					item.tooltip = "(hide)";
 				});
 				this.querySelector(`#summarycrn-${san_course}-${san_type}`).innerText = "";
 				this.querySelector(`tr#tr-${crn} div.td-name`).style.fontWeight="";
@@ -733,6 +759,7 @@
 								// Create thead section
 								var ths = sec.cloneNode(true);
 								ths.style.opacity = "0.0";
+								ths.tooltip = "(hide)";
 								ths.caption = courseobj.dept+"\n"+courseobj.number;
 								ths.disabled = true;
 								ths.selected = true;
