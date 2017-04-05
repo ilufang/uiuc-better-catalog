@@ -73,8 +73,9 @@
 				transform: scale(0.7,0.7);
 			}
 		</style>
-		<paper-material id="container" elevation="0" animated>
-			<span>[[caption]]</span>
+		<paper-material id="container" elevation="0" title="[[tooltip]]" animated>
+			<span id="caption">[[caption]]</span>
+			<!-- <paper-tooltip for="caption" position="bottom">[[tooltip]]</paper-tooltip> -->
 			<paper-ripple noink="[[disabled]]"></paper-ripple>
 		</paper-material>
 	</template>
@@ -105,6 +106,10 @@
 				reflectToAttribute: true
 			},
 			color: String,
+			tooltip: {
+				type: String,
+				reflectToAttribute: true
+			},
 			selected: {
 				type: Boolean,
 				reflectToAttribute: true,
@@ -176,6 +181,7 @@
 		setCRN: function(crn) {
 			if (crn) {
 				this.disabled = false;
+				var crnobj = catalog.sections[crn];
 			} else {
 				this.disabled = true;
 			}
@@ -721,6 +727,7 @@
 								sec.dept = courseobj.dept;
 								sec.caption = crnobj.section;
 								sec.crn = crnobj.crn;
+								sec.tooltip = meetobj.location+"\n"+meetobj.instructor.join(", ");
 								Polymer.dom(row.querySelector("div.td-"+day)).appendChild(sec);
 								Polymer.dom(master_tr.querySelector("div.td-"+day)).appendChild(sec.cloneNode(true));
 								// Create thead section
