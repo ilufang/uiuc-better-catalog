@@ -75,7 +75,6 @@
 		</style>
 		<paper-material id="container" elevation="0" title="[[tooltip]]" animated>
 			<span id="caption">[[caption]]</span>
-			<!-- <paper-tooltip for="caption" position="bottom">[[tooltip]]</paper-tooltip> -->
 			<paper-ripple noink="[[disabled]]"></paper-ripple>
 		</paper-material>
 	</template>
@@ -713,7 +712,10 @@
 							endtime = endtime.h+":"+endtime.m+":"+endtime.s;
 							meetobj.day.forEach((day) => {
 								// Decide whether this day is full width
-								if (meetobj.time[1].h > 18) {
+								if (meetobj.section == "AB4") {
+									// debugger;
+								}
+								if (meetobj.time[1].h >= 18) {
 									this.querySelectorAll("div.td-"+day).forEach((daydiv) => {
 										if (daydiv.className.indexOf("td-fullwidth")==-1) {
 											daydiv.className += " td-fullwidth";
@@ -727,7 +729,7 @@
 								sec.dept = courseobj.dept;
 								sec.caption = crnobj.section;
 								sec.crn = crnobj.crn;
-								sec.tooltip = meetobj.location+"\n"+meetobj.instructor.join(", ");
+								sec.tooltip = (meetobj.location+"\n"+meetobj.instructor.join(", ")).trim();
 								Polymer.dom(row.querySelector("div.td-"+day)).appendChild(sec);
 								Polymer.dom(master_tr.querySelector("div.td-"+day)).appendChild(sec.cloneNode(true));
 								// Create thead section
@@ -737,6 +739,7 @@
 								ths.disabled = true;
 								ths.selected = true;
 								ths.multiline = true;
+								ths.tooltip = "";
 								Polymer.dom(this.$$("div#td-"+day)).appendChild(ths);
 							});
 
