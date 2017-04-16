@@ -181,6 +181,12 @@
 			if (crn) {
 				this.disabled = false;
 				var crnobj = catalog.sections[crn];
+				if (crnobj.status.code == 3) {
+					// Closed
+					this.$.caption.style.textDecoration = "line-through";
+				} else {
+					this.$.caption.style.textDecoration = "";
+				}
 			} else {
 				this.disabled = true;
 			}
@@ -685,6 +691,9 @@
 						var name_div = document.createElement("div");
 						name_div.className = "td-name";
 						name_div.innerHTML = `<code>${crnobj.section} (${crnobj.crn})</code>`;
+						if (crnobj.status.code == 3) {
+							name_div.firstChild.style.textDecoration = "line-through";
+						}
 						Polymer.dom(name_div).appendChild(document.createElement("paper-ripple"));
 
 						name_div.addEventListener("click", ((crn)=>{
