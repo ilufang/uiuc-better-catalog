@@ -678,6 +678,9 @@
 						Polymer.dom(day_cell).appendChild(day_div);
 						Polymer.dom(master_tr).appendChild(day_cell);
 					}
+
+					var full_width_days = {};
+
 					Polymer.dom(this.$.seclist).appendChild(master_tr);
 					// Insert all CRNs
 					bookmark.data[course][type].forEach((crn) => {
@@ -721,15 +724,8 @@
 							endtime = endtime.h+":"+endtime.m+":"+endtime.s;
 							meetobj.day.forEach((day) => {
 								// Decide whether this day is full width
-								if (meetobj.section == "AB4") {
-									// debugger;
-								}
 								if (meetobj.time[1].h >= 18) {
-									this.querySelectorAll("div.td-"+day).forEach((daydiv) => {
-										if (daydiv.className.indexOf("td-fullwidth")==-1) {
-											daydiv.className += " td-fullwidth";
-										}
-									});
+									full_width_days[day] = true;
 								}
 								day = day.toLowerCase();
 								var sec = document.createElement("worksheet-section");
@@ -755,6 +751,15 @@
 						});
 						Polymer.dom(this.$.seclist).appendChild(row);
 					});
+					// Set full-width days
+					for (var day in full_width_days) {
+						this.querySelectorAll("div.td-"+day).forEach((daydiv) => {
+							if (daydiv.className.indexOf("td-fullwidth")==-1) {
+								daydiv.className += " td-fullwidth";
+							}
+						});
+					}
+
 				}
 			}
 			// Restore selections & conflicts

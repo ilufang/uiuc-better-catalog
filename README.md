@@ -4,7 +4,7 @@
 
 **Download for Windows/Linux/MacOS: [See release page](https://github.com/ilufang/uiuc-better-catalog/releases)**
 
-*Notice: The current repository is the version as of the end of the ENG198 course. Not fully tested & optimized. Expect bugs. We will continue to update this project and will probably release a (relatively) stable version recently*
+*Notice: We are currently preparing for the next release. Bleeding edge features are published in `dev` branch while somewhat stablized features are merged into `master`. The latest release is out-of-date. Please run from source if you want the latest features. A new release will be created soon.*
 
 ## Features
 
