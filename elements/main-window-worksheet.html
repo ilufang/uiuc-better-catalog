@@ -720,6 +720,10 @@
 						crnobj.meetings.forEach((meetobj) => {
 							var	starttime = meetobj.time[0],
 								endtime = meetobj.time[1];
+							if (!starttime || !endtime) {
+								console.warn("CRN "+crnobj.crn+" does not have meeting schedule!");
+								return;
+							}
 							starttime = starttime.h+":"+starttime.m+":"+starttime.s;
 							endtime = endtime.h+":"+endtime.m+":"+endtime.s;
 							meetobj.day.forEach((day) => {
