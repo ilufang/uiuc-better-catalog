@@ -607,16 +607,21 @@
 			window.crnsections = {};
 			window.worksheet = {};
 
+			var invalid_crns = [];
+
 			for (var course in bookmark.data) {
 				for (var type in bookmark.data[course]) {
-					bookmark.data[course][type].forEach((crn, arr, idx) => {
+					bookmark.data[course][type].forEach((crn, idx, arr) => {
 						let crnobj = catalog.sections[crn];
 						if (crnobj) {
 							crnsections[crnobj.crn] = { course, type };
 						} else {
-							console.warn(`CRN ${crn} not found in index`);
-							arr.splice(idx,1);
+							console.warn(`CRN ${crn} from ${course} not found in index`);
+							invalid_crns.unshift(idx);
 						}
+					});
+					invalid_crns.forEach((item) => {
+						bookmark.data[course][type].splice(item,1);
 					});
 				}
 			}
