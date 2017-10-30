@@ -607,16 +607,21 @@
 			window.crnsections = {};
 			window.worksheet = {};
 
+			var invalid_crns = [];
+
 			for (var course in bookmark.data) {
 				for (var type in bookmark.data[course]) {
-					bookmark.data[course][type].forEach((crn, arr, idx) => {
+					bookmark.data[course][type].forEach((crn, idx, arr) => {
 						let crnobj = catalog.sections[crn];
 						if (crnobj) {
 							crnsections[crnobj.crn] = { course, type };
 						} else {
-							console.warn(`CRN ${crn} not found in index`);
-							arr.splice(idx,1);
+							console.warn(`CRN ${crn} from ${course} not found in index`);
+							invalid_crns.unshift(idx);
 						}
+					});
+					invalid_crns.forEach((item) => {
+						bookmark.data[course][type].splice(item,1);
 					});
 				}
 			}
@@ -720,6 +725,10 @@
 						crnobj.meetings.forEach((meetobj) => {
 							var	starttime = meetobj.time[0],
 								endtime = meetobj.time[1];
+							if (!starttime || !endtime) {
+								console.warn("CRN "+crnobj.crn+" does not have meeting schedule!");
+								return;
+							}
 							starttime = starttime.h+":"+starttime.m+":"+starttime.s;
 							endtime = endtime.h+":"+endtime.m+":"+endtime.s;
 							meetobj.day.forEach((day) => {
@@ -770,13 +779,19 @@
 						throw "Initializing worksheet";
 					}
 					saved_worksheet = JSON.parse(saved_worksheet);
-					for (var i=0; i<saved_worksheet.length; ++i) {
-						this.selectCRN({
-							detail: {
-								selected: true,
-								crn: saved_worksheet[i]
-							}
-						});
+					for (var i=saved_worksheet.length-1; i>=0; i--) {
+						if (catalog.sections[saved_worksheet[i]]) {
+							this.selectCRN({
+								detail: {
+									selected: true,
+									crn: saved_worksheet[i]
+								}
+							});
+						} else {
+							// Invalid CRN
+							console.warn("Invalid saved CRN "+saved_worksheet[i]+" removed.");
+							saved_worksheet.splice(i,1);
+						}
 					}
 				} catch(e) {
 					console.warn(e);
