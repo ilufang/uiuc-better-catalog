@@ -34,8 +34,11 @@
 			#description {
 				font-size: 1.2em;
 			}
-			#container {
+			#container, #messages {
 				margin: 1em;
+			}
+			#messages p {
+				white-space: pre-wrap;
 			}
 			#sync {
 				opacity: 0.6;
@@ -99,6 +102,11 @@
 					<paper-tooltip id="tip_fav" for="fab_fav" position="top" animation-delay="0">[[fav_tooltip]]</paper-tooltip>
 				</div>
 			</paper-toolbar>
+			<div id="messages" style="display: none">
+				<paper-button id="msg_clrbtn">Clear Messages</paper-button>
+				<p>[[messages]]</p>
+				<hr />
+			</div>
 			<div style="display: none" id="container">
 				<strong style="color:#00f">[[credit]]</strong>
 				<p class="content fit" id="description"></p>
@@ -130,13 +138,17 @@
 			sync: String,
 			syncicon: String,
 			syncstatus: String,
-			fav_tooltip: String
+			fav_tooltip: String,
+			messages: String
 		},
 		ready: function(e){
 			this.listen(this.$.fab_fav, "tap", "bookmarkCourse");
 			this.boundUpdateBookmark = this.updateBookmark.bind(this);
 			this.querySelector("#middleBar").style.transition = "transform 0.18s ease-in";
 			this.listen(this.$.toggle_menu, "tap", "toggleMenu");
+			this.$.messages.style.display = "none";
+			this.messages = "";
+			this.listen(this.$.msg_clrbtn, "tap", "clearMessages")
 		},
 		attached: function() {
 			bookmark.addListener('bookmark-changed', this.boundUpdateBookmark);
@@ -146,6 +158,14 @@
 		},
 		toggleMenu: function() {
 			this.fire('menu-toggle');
+		},
+		clearMessages: function() {
+			this.messages = "";
+			this.$.messages.style.display = "none";
+		},
+		logMessage: function(msg) {
+			this.$.messages.style.display = "block";
+			this.messages += msg + "\n";
 		},
 		bookmarkCourse: function(e) {
 			if (bookmark.get(this.course) == 'all') {
@@ -179,6 +199,7 @@
 			if (code == prev) {
 				return;
 			}
+			this.clearMessages();
 			var course = catalog.getCourse(code);
 			if (!course) {
 				this.course = prev;
@@ -196,7 +217,31 @@
 				this.syncicon = 'cloud-queue';
 				this.syncstatus = 'Updating...';
 				catalog.update(code).then(((data) => {
-					this.inflateCourse(data, 'update');
+					this.inflateCourse(data.course, 'update');
+					var mksecs = data.added.map(function(item) {
+						return item + "(" + catalog.sections[item].section + ")";
+					});
+					var rmsecs = data.removed;
+					if (mksecs.length + rmsecs.length > 0) {
+						this.logMessage("There are sections added/removed to this course since last update:");
+						if (mksecs.length)
+							this.logMessage("Added: " + mksecs.join(", "));
+						if (rmsecs.length)
+							this.logMessage("Removed: " + rmsecs.join(", "));
+
+						// Update bookmarks to remove deleted sections
+						for (var sec in data.course) {
+							var secobj = data.course[sec];
+							rmsecs.forEach(function(item) {
+								var idx = secobj.indexOf(item);
+								if (idx != -1) {
+									secobj.splice(idx, 1);
+									this.logMessage(sec + " " + item + " is deleted from your bookmark due to being removed");
+								}
+							});
+						}
+						updateBookmark();
+					}
 				}).bind(this), (err) => {
 					console.error(err);
 					this.sync = 'err';
