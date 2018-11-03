@@ -19,58 +19,34 @@ function generateCourseCell(course) {
 	cell.description = description;
 	return cell;
 }
-// For relevance: decide whether two words are similar enough to be considered equal
-// Corrects spelling mistakes and word variants, like plural
-// Algorithm: find the longest shared part, same "move & match" algorithm as relevance
-function similar(a, b){
-	if (a==b)
-		return true;
-	if (!a || !b)
-		return false;
-	var len = a.length / b.length;
-	if (len > 2 || len < 0.5 || a.length<5 || b.length<5)
-		return false;
-	var current = 0, longest = 0;
-	for (var i=0; i<a.length; i++) {
-		current = 0;
-		for (var j=0; j<b.length; j++) {
-			if (a[i+j] == b[j]) {
-				++current;
-				if (current > longest)
-					longest = current;
-			} else {
-				current = 0;
-			}
-		}
-	}
-	if (4 * longest > a.length + b.length)
-		return true;
-	else
-		return false;
-}
 // For searchbox: calculate similarity between text and search word
 // Algorithm: move the needle along the haystack, sum up the squared length of the longest common substring for each position
 function relevance(haystack, needle) {
-	if (haystack.trim() == needle.trim())
-		return 100; // Prefect match
-	var emptyword = /( |^)(the|\&|and|a|an|with|of|in|to|at|from|for|I|II|III)( |$)/g;
-	haystack = haystack.toLowerCase().replace(emptyword," ").split(' ');
-	needle = needle.toLowerCase().replace(emptyword," ").split(' ');
+	haystack = haystack.trim().toLowerCase().split(/\s+|"/);
+	needle = needle.trim().toLowerCase().split(/\s+/);
 	var score = 0;
 	for (var i=0; i<haystack.length; ++i) {
 		var longest = 0, current = 0;
 		for (var j=0; j<needle.length; ++j) {
-			if (similar(needle[j], haystack[i+j])) {
-				++longest;
+			let h = haystack[i+j], n = needle[j];
+			if (!h)
+				break;
+			if (h.startsWith(n)) {
+				longest += 1-(h.length-n.length)/h.length;
 				if (current > longest)
 					longest = current;
 			} else {
 				current = 0;
 			}
 		}
-		score += longest*longest;
+		if (longest == needle.length) {
+			return needle.length;
+		}
+		if (longest > score) {
+			score = longest
+		}
 	}
-	return score/(needle.length*needle.length);
+	return score;
 }
 </script>
 
@@ -224,6 +200,9 @@ function relevance(haystack, needle) {
 				this.$.searchbox_btn.disabled = true;
 				this.locked = false;
 			}).bind(this));
+			this.$.searchbox_input.addEventListener("change", (function(e) {
+				this.search(e.target.value, 'enter');
+			}).bind(this));
 		},
 		inputChanged: function(value, prev) {
 			// Force search
@@ -231,7 +210,7 @@ function relevance(haystack, needle) {
 				this.search(value, 'input');
 			}
 		},
-		search: function(key) {
+		search: function(key, src) {
 			if (key instanceof Event) {
 				key = key.detail.keyword;
 				if (catalog.getCourse(key)) {
@@ -268,7 +247,11 @@ function relevance(haystack, needle) {
 				for (var cnum in deptobj) {
 					if (cnum == 'name')
 						continue;
-					var rel = relevance(deptobj[cnum].title, key);
+					let cinfo = deptobj[cnum].title;
+					if (src == 'enter') {
+						cinfo = localStorage[`${dept}_${cnum}`];
+					}
+					var rel = relevance(cinfo, key);
 					if (rel) {
 						course_result.push({course:deptobj[cnum],rel});
 					}
@@ -280,6 +263,9 @@ function relevance(haystack, needle) {
 			course_result.sort((a,b) => {
 				return a.rel-b.rel;
 			});
+			if (src == 'input') {
+				course_result = course_result.slice(0, 10);
+			}
 			// Display results
 			this.$.results.innerHTML = '';
 			dept_result.forEach(((item) => {
@@ -294,6 +280,15 @@ function relevance(haystack, needle) {
 				cell.owner = this;
 				Polymer.dom(this.$.results).appendChild(cell);
 			}).bind(this));
+			if (src == 'input') {
+				var cell = document.createElement('div');
+				cell.style.textAlign = 'center';
+				cell.style.color = '#666';
+				cell.style.padding = '1em';
+				cell.style.fontFamily = 'sans-serif';
+				cell.innerText = "Press Enter for deep search";
+				Polymer.dom(this.$.results).appendChild(cell);
+			}
 		},
 		populateDepts: function() {
 			this.$.results.innerHTML = '';
