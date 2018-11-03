@@ -10,6 +10,7 @@
 <link rel="import" href="settings/about.html" />
 <link rel="import" href="settings/general.html" />
 <link rel="import" href="settings/database.html" />
+<link rel="import" href="settings/regbot.html" />
 
 <script type="text/javascript" src="palette.js"></script>
 
@@ -39,6 +40,20 @@
 			#container {
 				margin: 1em;
 			}
+			#header-toolbar .top {
+				opacity: 0.0;
+				transition: opacity 0.18s ease-in;
+			}
+			#header-toolbar .middle {
+				opacity: 0.0;
+				transition: opacity 0.18s ease-in;
+			}
+			#header-toolbar.tall .top {
+				opacity: 1.0;
+			}
+			#header-toolbar.tall .middle {
+				opacity: 1.0;
+			}
 		</style>
 		<paper-header-panel mode="waterfall-tall" shadow>
 			<paper-toolbar id="header-toolbar">
@@ -58,6 +73,7 @@
 				<uiuc-settings-about name="about"></uiuc-settings-about>
 				<uiuc-settings-general name="general"></uiuc-settings-general>
 				<uiuc-settings-database name="database"></uiuc-settings-database>
+				<uiuc-settings-regbot name="regbot"></uiuc-settings-regbot>
 			</neon-animated-pages>
 
 		</paper-header-panel>
@@ -89,6 +105,9 @@
 					break;
 				case "database":
 					this.$["toolbar-title"].innerText = "Database & Sync";
+					break;
+				case "regbot":
+					this.$["toolbar-title"].innerText = "Enterprise Interface";
 					break;
 				default:
 					this.$["toolbar-title"].innerText = page;

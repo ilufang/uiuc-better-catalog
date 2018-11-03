@@ -8,7 +8,13 @@ let mainWindow;
 
 function createWindow () {
 	// Create the browser window.
-	mainWindow = new BrowserWindow({width: 800, height: 600});
+	mainWindow = new BrowserWindow({
+		width: 1280,
+		height: 720,
+		webPreferences: {
+			nativeWindowOpen: true
+		}
+	});
 	mainWindow.loadURL(`file://${__dirname}/index.html`);
 
 	// Open the DevTools.

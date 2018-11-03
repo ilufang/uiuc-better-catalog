@@ -33,6 +33,65 @@
 		console.log("Catalog loaded.");
 	}
 	</script>
+	<script type="text/javascript">
+	// Regbot
+	window.regbot = {
+		pref: null,
+		inst: null,
+		wnd: null,
+		webview: null
+	};
+	regbot.activate = function() {
+		if (regbot.inst) {
+			console.warn("RegBot is already running");
+			return;
+		}
+		regbot.wnd = window.open("regbot.html");
+		regbot.wnd.addEventListener("load", function() {
+			regbot.boot();
+		});
+		regbot.wnd.addEventListener("unload", function() {
+			regbot.shutdown();
+		});
+	}
+	regbot.boot = function() {
+		regbot.webview = regbot.wnd.document.getElementById("webview");
+		regbot.inst = new RegWebview(regbot.pref, regbot.webview);
+		regbot.pref.enabled = true;
+	}
+	regbot.deactivate = function() {
+		if (!regbot.inst) {
+			console.warn("RegBot is not running");
+			return;
+		}
+		regbot.wnd.close();
+	}
+	regbot.shutdown = function() {
+		regbot.webview = null;
+		regbot.wnd = null;
+		regbot.inst = null;
+		regbot.pref.enabled = false;
+	}
+
+	(function() {
+		var jsonpref = localStorage.getItem("regbot");
+		if (!jsonpref) {
+			regbot.pref = {
+				showinfo: true,
+				enabled: false,
+				autoload: false,
+				autologin: false,
+				username: "",
+				password: ""
+			};
+		} else {
+			regbot.pref = JSON.parse(jsonpref);
+		}
+		if (regbot.pref.enabled) {
+			regbot.activate();
+		}
+	})();
+	</script>
 </head>
 <body fullbleed unresolved>
 	<registration-app></registration-app>

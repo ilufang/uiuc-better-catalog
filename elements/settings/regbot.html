@@ -1,0 +1,187 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+
+<dom-module id="uiuc-settings-regbot">
+	<template>
+		<style type="text/css">
+		.container {
+			margin: 1em;
+		}
+		#input-login paper-input {
+			width: 16em;
+			margin: 0px 1em;
+			display: inline-block;
+		}
+		#log {
+			display: block;
+			margin: 1em;
+			max-height: 14em;
+			overflow: auto;
+		}
+		#log .warn {
+			color: #ef6c00; /*--paper-orange-800*/
+		}
+		#log .error {
+			color: #f00;
+		}
+		#log .info {
+			font-weight: bold;
+		}
+		#log .success {
+			color: #0f0;
+		}
+		</style>
+		<div class="container">
+			<div id="disclaimer">
+				<p>
+					This tool extends the functionality of this app by retrieving information from Enterprise, the
+					registration site. This tool can retrieve real-time availability information (rather than the 10-min
+					delayed data from Course Explorer), number of available seats, currently registered courses and credits
+					and submit changes to registered schedule, etc. However, this tool will work passively, i.e., it will
+					only send requests to Enterprise on your activity, such as viewing a course. It CANNOT actively scan
+					for open seats or perform scheduled registration after the app is closed.
+				</p>
+				<p>
+					In order to access Enterprise, you have to provide your UIUC ActiveDirectory credentials, and all
+					subsequent requests will be sent on your behalf. BY ACTIVATING THIS FEATURE, YOU AGREE THAT IN NO EVENT
+					SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+					AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+					USE OR OTHER DEALINGS IN THE SOFTWARE. Specifically, although the tool is designed to acceptably utilize
+					the Enterprise service to enhance the registration procedure, the university or the office of the
+					registrar do not explicitly grant such use and could consider such use as "excessive amount of failed
+					registration" and restrict your access to web registration. If you do not want to expose your identity,
+					you could turn this tool off and still use the baseline features which access the Course Explorer
+					anonymously.
+				</p>
+			</div>
+			<paper-button id="btn-showinfo" on-tap="toggleinfo">Hide disclaimer</paper-button>
+			<hr />
+			<h3><paper-toggle-button id="btn-en" on-checked-changed="seten" checked="{{pref.enabled}}">Enable RegBot Enterprise Interface</paper-toggle-button></h3>
+			<h4><paper-toggle-button id="btn-act" on-checked-changed="setact" checked="{{pref.autoload}}">Automatically retrieve information from RegBot</paper-toggle-button></h4>
+			<h4><paper-toggle-button id="btn-login" on-checked-changed="setlogin" checked="{{pref.autologin}}">Automatically login into UIUC ActiveDirectory</paper-toggle-button></h4>
+			<div id="input-login">
+				<paper-input label="NetID" on-value-changed="savePref" value="{{username}}">
+					<iron-icon icon="account-circle" prefix></iron-icon>
+				</paper-input>
+				<paper-input label="AD Password" type="password" on-value-changed="savePref" value="{{password}}">
+					<iron-icon icon="https" prefix></iron-icon>
+				</paper-input>
+			<div>
+			<p>
+				Warning: we will not save or use your UIUC credentials outside this app,
+				but be advised that your credentials can only be stored unencrypted. To login
+				manually, simply leave the fields blank.
+			</p>
+			<hr />
+			<div id="log"></div>
+			<paper-button on-tap="clearlog">Clear Log</paper-button>
+		</div>
+	</template>
+	<script>
+	var RegWebview = require("regd-wvmgr");
+	Polymer({
+		is: "uiuc-settings-regbot",
+		properties: {
+			pref: "Object",
+			wvreg: "Object",
+			username: "String",
+			password: "String"
+		},
+		ready: function() {
+			this.loadPref();
+		},
+		attached: function() {
+			if (!this.pref.showinfo) {
+				this.$.disclaimer.style.display = "none";
+				this.$["btn-showinfo"].innerText = "Show disclaimer";
+			}
+			if (!window.regbot && this.pref.enabled) {
+				window.regbot = new RegWebview(this, this.$.webview);
+				window.console.log("RegBot service started.");
+			}
+			setTimeout(this.clearlog.bind(this), 50);
+		},
+		loadPref: function() {
+			var jsonpref = localStorage.getItem("regbot");
+			if (!jsonpref) {
+				this.pref = {
+					showinfo: true,
+					enabled: false,
+					autoload: false,
+					autologin: false,
+					username: "",
+					password: ""
+				};
+				this.savePref();
+			} else {
+				try {
+					this.pref = JSON.parse(jsonpref);
+				} catch(e) {
+					localStorage.removeItem("regbot");
+					this.loadPref();
+				}
+			}
+			this.username = this.pref.username;
+			this.password = this.pref.password;
+		},
+		savePref: function() {
+			if (!this.pref) {
+				return;
+			}
+			this.pref.username = this.username;
+			this.pref.password = this.password;
+			localStorage.setItem("regbot", JSON.stringify(this.pref));
+		},
+		msg: function(type, msg) {
+			var line = document.createElement("p");
+			line.className = type;
+			line.innerText = msg;
+			Polymer.dom(this.$.log).appendChild(line);
+			line.scrollIntoView();
+		},
+		clearlog: function() {
+			Polymer.dom(this.$.log).innerHTML = "";
+		},
+		toggleinfo: function() {
+			this.pref.showinfo = !this.pref.showinfo;
+			if (this.pref.showinfo) {
+				this.$.disclaimer.style.display = "";
+				this.$["btn-showinfo"].innerText = "Hide disclaimer";
+			} else {
+				this.$.disclaimer.style.display = "none";
+				this.$["btn-showinfo"].innerText = "Show disclaimer";
+			}
+			this.savePref();
+		},
+		seten: function(e) {
+			if (e.target.checked) {
+				if (!window.regbot) {
+					regbot = new RegWebview(this, this.$.webview);
+					this.msg("success", "RegBot service started.");
+				} else {
+					this.msg("warn", "RegBot is already running");
+				}
+			} else {
+				if (window.regbot) {
+					delete window.regbot;
+					this.msg("success", "RegBot service stopped.");
+				} else {
+					this.msg("warn", "RegBot is not enabled");
+				}
+			}
+			setTimeout(this.savePref.bind(this), 10);
+		},
+		setact: function(e) {
+			// Nothing..
+			setTimeout(this.savePref.bind(this), 10);
+		},
+		setlogin: function(e) {
+			// Nothing..
+			setTimeout(this.savePref.bind(this), 10);
+		},
+	});
+	</script>
+
+</dom-module>
+</html>
