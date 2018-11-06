@@ -4,6 +4,12 @@
 	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
 	<title>RegBot Helper</title>
 	<style>
+	html, body {
+		height: 100%;
+	}
+	#main {
+		height: calc(100% - 2em);
+	}
 	body {
 		margin: 0px;
 		padding: 0px;
@@ -14,21 +20,47 @@
 		margin: 0px;
 	}
 	</style>
-	<script type="text/javascript">
-	window.onbeforeunload = function(event) {
-		var message = 'Closing this window will turn RegBot off.\n';
-		message += 'Are you sure you want to close this window?';
-		if (typeof event == 'undefined') {
-			event = window.event;
-		}
-		if (event) {
-			event.returnValue = message;
-		}
-		return message;
-	}
-	</script>
 </head>
 <body>
-	<webview id="regbot-wv"></webview>
+	<div>
+		<button type="button" id="btn-hide">Hide Window</button>
+		<span>(You can re-open in RegBot settings)</span>
+	</div>
+	<div id="main">
+		<webview id="regbot-wv"></webview>
+	</div>
+	<script type="text/javascript">
+	// Bootstrap
+	const {ipcRenderer} = require("electron");
+	const RBWV = require("regd-wvmgr");
+	function init(prefs) {
+		let host = {
+			msg: function(type, msg) {
+				ipcRenderer.send("regbot.log", `[${type}] ${msg}`);
+			},
+			pref: prefs
+		};
+		window.regbot = new RBWV(host, document.querySelector("#regbot-wv"));
+		host.msg("success", "RegBot service started.");
+	}
+	ipcRenderer.send("regbot.ready");
+
+	// IPC actions
+	function getSeats(dept, num) {
+		regbot.getCourseSeats(dept, num).then(result => {
+			ipcRenderer.send("regbot.seatinfo", result);
+		});
+	}
+
+	// UI actions
+	document.querySelector("#btn-hide").addEventListener("click", function() {
+		ipcRenderer.send("regbot.hide");
+	});
+
+	// No close
+	window.onbeforeunload = (e) => {
+		e.returnValue = false;
+	}
+	</script>
 </body>
 </html>

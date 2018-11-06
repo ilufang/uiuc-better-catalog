@@ -148,7 +148,10 @@
 			this.listen(this.$.toggle_menu, "tap", "toggleMenu");
 			this.$.messages.style.display = "none";
 			this.messages = "";
-			this.listen(this.$.msg_clrbtn, "tap", "clearMessages")
+			this.listen(this.$.msg_clrbtn, "tap", "clearMessages");
+			ipcMain.on("regbot.seatinfo", (e, data) => {
+				this.inflateSeats(data);
+			});
 		},
 		attached: function() {
 			bookmark.addListener('bookmark-changed', this.boundUpdateBookmark);
@@ -250,15 +253,44 @@
 				});
 			}
 		},
+		loadFromRegBot: function() {
+			this.sync = 'regbot';
+			this.syncicon = 'cloud-queue';
+			this.syncstatus = 'Loading Details from RegBot...';
+			regbot.getSeat(this.courseobj.dept, this.courseobj.number);
+		},
+		inflateSeats: function(data) {
+			// Inflate seat information from regbot
+			var datamatch = false;
+			this.domHost.querySelectorAll("main-section-detail").forEach(el => {
+				if (data[el._crn]) {
+					datamatch = true;
+					el.inflateSeats(data[el._crn]);
+				}
+			});
+			if (datamatch) {
+				this.domHost.querySelectorAll("main-section-group").forEach(el => {
+					el.updateHeight();
+				});
+				this.sync = '';
+				this.syncicon = 'cloud-done';
+				this.syncstatus = 'Up to date!';
+			}
+		},
 		inflateCourse: function(course, src) {
 			if (src=='update') {
 				if (course.code != this.courseobj.code) {
 					// Outdated update, do not inflate
 					return;
 				}
-				this.sync = '';
-				this.syncicon = 'cloud-done';
-				this.syncstatus = 'Up to date!';
+
+				if (regbot.wnd && regbot.pref.autoload) {
+					this.loadFromRegBot();
+				} else {
+					this.sync = '';
+					this.syncicon = 'cloud-done';
+					this.syncstatus = 'Up to date!';
+				}
 
 				// Preserve open/close status of sections
 				var section_expanded = {};
@@ -309,6 +341,13 @@
 
 			// Inflate sections
 			this.$.sections.innerHTML = '';
+			if (regbot.wnd) {
+				var regbotblock = document.createElement("a");
+				regbotblock.href = "javascript:void(0)";
+				regbotblock.innerText = "Load Seat Information";
+				regbotblock.addEventListener("click", this.loadFromRegBot.bind(this));
+				this.$.sections.appendChild(regbotblock);
+			}
 			for (var type in course.sections) {
 				var secblock = document.createElement("main-section-group");
 				secblock.course = course.code;

@@ -12,7 +12,10 @@ function createWindow () {
 		width: 1280,
 		height: 720,
 		webPreferences: {
-			nativeWindowOpen: true
+			nodeIntegration: true,
+			sandbox: false,
+			webSecurity: false,
+			webviewTag: true
 		}
 	});
 	mainWindow.loadURL(`file://${__dirname}/index.html`);

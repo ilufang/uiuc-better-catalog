@@ -2,6 +2,7 @@
 <link rel="import" href="../bower_components/paper-material/paper-material.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../bower_components/paper-progress/paper-progress.html">
 <link rel="import" href="../bower_components/paper-styles/color.html">
 <script type="text/javascript" src="palette.js"></script>
 
@@ -141,15 +142,18 @@ function printTime(obj) {
 				this.$.cascade.style.transform = '';
 			} else {
 				// Show
-				if (this.$.container.clientHeight == 0) {
-					this.$.card.style.height = '72px';
-					requestAnimationFrame((()=>{
-						this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
-					}).bind(this));
-				} else {
-					this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
-				}
+				this.updateHeight();
 				this.$.cascade.style.transform = 'rotate(180deg)';
+			}
+		},
+		updateHeight: function() {
+			if (this.$.container.clientHeight == 0) {
+				this.$.card.style.height = '72px';
+				requestAnimationFrame(() => {
+					this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
+				});
+			} else {
+				this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
 			}
 		},
 		eventAbsorber: function(e) {
@@ -197,10 +201,16 @@ function printTime(obj) {
 				-webkit-user-select: initial;
 			}
 			#card {
-				padding: 0.6em 0.8em;
+				padding: 0px;
 				margin: 0.6em 0px;
 				background: #fff;
 				color: #000;
+			}
+			#main {
+				padding: 0.6em 0.8em;
+			}
+			#rb-seats p {
+				margin: 0.6em 0.8em;
 			}
 			#caption {
 				font-size: 1.1em;
@@ -213,6 +223,17 @@ function printTime(obj) {
 				font-family: monospace;
 				font-weight: bold;
 				font-size: 1.2em;
+			}
+			#rb-instr {
+				float: right;
+			}
+			#rb-seats {
+				margin-bottom: 0px;
+				padding-bottom: 0px;
+			}
+			paper-progress {
+				--paper-progress-active-color: #f93;
+				width: 100%;
 			}
 			#credit {
 				margin: 0.5em 0px;
@@ -233,28 +254,37 @@ function printTime(obj) {
 			}
 		</style>
 		<paper-material id="card">
-			<div>
-				<strong id="caption">[[title]]</strong>
-				<span id="status"><iron-icon icon="radio-button-checked"></iron-icon> [[status]]</span>
-				<span id="code">
-					[[code]] ([[_crn]])
-					<paper-icon-button id="bookmark" icon="star"></paper-icon-button>
-				</span>
+			<div id="main">
+				<div>
+					<strong id="caption">[[title]]</strong>
+					<span id="status"><iron-icon icon="radio-button-checked"></iron-icon> [[status]]</span>
+					<span id="code">
+						[[code]] ([[_crn]])
+						<paper-icon-button id="bookmark" icon="star"></paper-icon-button>
+					</span>
+				</div>
+				<strong id="credit">[[credit]]</strong> | <span>Term [[term]]</span>
+				<p id="description"></p>
+				<p id="restrictions"></p>
+				<table>
+					<thead>
+						<tr>
+							<th width="20%">Type</th>
+							<th width="20%">Time</th>
+							<th width="30%">Location</th>
+							<th width="30%">Instructor</th>
+						</tr>
+					</thead>
+					<tbody id="meetings"></tbody>
+				</table>
 			</div>
-			<strong id="credit">[[credit]]</strong> | <span>Term [[term]]</span>
-			<p id="description"></p>
-			<p id="restrictions"></p>
-			<table>
-				<thead>
-					<tr>
-						<th width="20%">Type</th>
-						<th width="20%">Time</th>
-						<th width="30%">Location</th>
-						<th width="30%">Instructor</th>
-					</tr>
-				</thead>
-				<tbody id="meetings"></tbody>
-			</table>
+			<div id="rb-seats">
+				<p>
+					<span>Availability: [[rb_rem]]/[[rb_cap]], X-List: [[rb_xlrem]]/[[rb_xlcap]]</span>
+					<span id="rb-instr">[[rb_instr]]</span>
+				</p>
+				<paper-progress value="[[rb_rate]]"></paper-progress>
+			</div>
 		</paper-material>
 	</template>
 	<script type="text/javascript">
@@ -276,7 +306,13 @@ function printTime(obj) {
 			code: String,
 			credit: String,
 			term: String,
-			course: String // TODO: this is a workaround
+			course: String, // TODO: this is a workaround
+			rb_rate: Number,
+			rb_instr: String,
+			rb_rem: Number,
+			rb_cap: Number,
+			rb_xlrem: Number,
+			rb_xlcap: Number
 		},
 		listeners: {
 			down: 'eventAbsorber'
@@ -315,6 +351,19 @@ function printTime(obj) {
 				default:
 					console.warn("Bookmark reported unexpected value: "+bookmark.get(this.course, this.type));
 			}
+		},
+		inflateSeats: function(data) {
+			this.rb_instr = data.instr;
+			this.rb_rem = data.rem;
+			this.rb_cap = data.cap;
+			this.rb_xlrem = data.xlrem;
+			this.rb_xlcap = data.xlcap;
+			if (data.xlcap > 0) {
+				this.rb_rate = 100.0 * (data.xlact/data.xlcap);
+			} else {
+				this.rb_rate = 100.0 * (data.act/data.cap);
+			}
+			this.$["rb-seats"].style.display = "block";
 		},
 		setCRN: function(crn, prev) {
 			if (crn == prev) {
@@ -397,6 +446,8 @@ function printTime(obj) {
 
 				this.$.meetings.appendChild(row);
 			});
+
+			this.$["rb-seats"].style.display = "none";
 
 			this.updateBookmark();
 		}

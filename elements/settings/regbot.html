@@ -19,6 +19,13 @@
 			max-height: 14em;
 			overflow: auto;
 		}
+		#log p {
+			font-size: 1em;
+			font-family: monospace;
+			line-height: 1em;
+			margin: 0px;
+			padding: 0px;
+		}
 		#log .warn {
 			color: #ef6c00; /*--paper-orange-800*/
 		}
@@ -29,7 +36,7 @@
 			font-weight: bold;
 		}
 		#log .success {
-			color: #0f0;
+			color: #0c0;
 		}
 		</style>
 		<div class="container">
@@ -73,13 +80,13 @@
 				but be advised that your credentials can only be stored unencrypted. To login
 				manually, simply leave the fields blank.
 			</p>
+			<paper-button on-tap="showHelper" id="btn-showhelper">Show Helper Window</paper-button>
 			<hr />
 			<div id="log"></div>
 			<paper-button on-tap="clearlog">Clear Log</paper-button>
 		</div>
 	</template>
 	<script>
-	var RegWebview = require("regd-wvmgr");
 	Polymer({
 		is: "uiuc-settings-regbot",
 		properties: {
@@ -96,34 +103,26 @@
 				this.$.disclaimer.style.display = "none";
 				this.$["btn-showinfo"].innerText = "Show disclaimer";
 			}
-			if (!window.regbot && this.pref.enabled) {
-				window.regbot = new RegWebview(this, this.$.webview);
-				window.console.log("RegBot service started.");
-			}
-			setTimeout(this.clearlog.bind(this), 50);
+
+			const {ipcMain} = require('electron').remote;
+			ipcMain.on("regbot.log", (e, msg) => {
+				let matches = msg.match(/^\[(\w+)\] (.*)$/);
+				this.msg(matches[1], matches[2]);
+			});
+			regbot.msg = this.msg.bind(this);
+
+			this.$["btn-showhelper"].style.display = "none";
+			ipcMain.on("regbot.hide", () => {
+				this.$["btn-showhelper"].style.display = "";
+				regbot.wnd.hide();
+			});
+			this.rbready = true;
 		},
 		loadPref: function() {
-			var jsonpref = localStorage.getItem("regbot");
-			if (!jsonpref) {
-				this.pref = {
-					showinfo: true,
-					enabled: false,
-					autoload: false,
-					autologin: false,
-					username: "",
-					password: ""
-				};
-				this.savePref();
-			} else {
-				try {
-					this.pref = JSON.parse(jsonpref);
-				} catch(e) {
-					localStorage.removeItem("regbot");
-					this.loadPref();
-				}
-			}
-			this.username = this.pref.username;
-			this.password = this.pref.password;
+			this.pref = regbot.pref;
+			let u = regbot.pref.username, p = regbot.pref.password;
+			this.username = u;
+			this.password = p;
 		},
 		savePref: function() {
 			if (!this.pref) {
@@ -133,12 +132,19 @@
 			this.pref.password = this.password;
 			localStorage.setItem("regbot", JSON.stringify(this.pref));
 		},
+		showHelper: function() {
+			if (regbot.wnd) {
+				regbot.wnd.show();
+				this.$["btn-showhelper"].style.display = "none";
+			} else {
+				this.msg("warn", "Regbot is not running");
+			}
+		},
 		msg: function(type, msg) {
 			var line = document.createElement("p");
 			line.className = type;
 			line.innerText = msg;
 			Polymer.dom(this.$.log).appendChild(line);
-			line.scrollIntoView();
 		},
 		clearlog: function() {
 			Polymer.dom(this.$.log).innerHTML = "";
@@ -155,30 +161,33 @@
 			this.savePref();
 		},
 		seten: function(e) {
+			setImmediate(this.savePref.bind(this));
+			if (!this.rbready) {
+				return;
+			}
 			if (e.target.checked) {
-				if (!window.regbot) {
-					regbot = new RegWebview(this, this.$.webview);
-					this.msg("success", "RegBot service started.");
+				if (!regbot.wnd) {
+					regbot.activate();
 				} else {
 					this.msg("warn", "RegBot is already running");
 				}
 			} else {
-				if (window.regbot) {
-					delete window.regbot;
+				if (regbot.wnd) {
+					regbot.wnd.destroy();
+					this.$["btn-showhelper"].style.display = "none";
 					this.msg("success", "RegBot service stopped.");
 				} else {
 					this.msg("warn", "RegBot is not enabled");
 				}
 			}
-			setTimeout(this.savePref.bind(this), 10);
 		},
 		setact: function(e) {
 			// Nothing..
-			setTimeout(this.savePref.bind(this), 10);
+			setImmediate(this.savePref.bind(this));
 		},
 		setlogin: function(e) {
 			// Nothing..
-			setTimeout(this.savePref.bind(this), 10);
+			setImmediate(this.savePref.bind(this));
 		},
 	});
 	</script>
