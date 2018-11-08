@@ -147,6 +147,8 @@ function printTime(obj) {
 			}
 		},
 		updateHeight: function() {
+			if (this.contentsHidden)
+				return;
 			if (this.$.container.clientHeight == 0) {
 				this.$.card.style.height = '72px';
 				requestAnimationFrame(() => {
