@@ -1,0 +1,136 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../../bower_components/paper-ripple/paper-ripple.html">
+<link rel="import" href="../../../bower_components/paper-progress/paper-progress.html">
+<link rel="import" href="../../../bower_components/paper-styles/color.html">
+
+<dom-module id="regtentry-container">
+	<template>
+		<style type="text/css">
+		#card {
+			padding: 0.4em 1.6em;
+			margin: 1em 0px;
+			color: #000;
+			transition: height 0.5s;
+			cursor: pointer;
+			overflow: hidden;
+			user-select: none;
+			-webkit-user-select: none;
+		}
+		#caption {
+			display: inline-block;
+		}
+		#cascade {
+			transition: transform 0.5s;
+		}
+		#container {
+			overflow: auto;
+			top: 0px;
+			left: 0px;
+			width: 100%;
+			padding: 0px 1.6em;
+			margin: 0px -1.6em;
+			margin-bottom: 1.6em;
+		}
+		#removeBtn {
+			float: right;
+			margin-top: 0.5em;
+		}
+		</style>
+		<paper-material id="card">
+			<div id="header">
+				<paper-icon-button id="cascade" icon="expand-more"></paper-icon-button>
+				<h3 id="caption">[[taskname]]</h3>
+				<paper-icon-button id="removeBtn" icon="close"></paper-icon-button>
+			</div>
+			<paper-ripple></paper-ripple>
+			<div id="container">
+				<content></content>
+			</div>
+		</paper-material>
+	</template>
+	<script type="text/javascript">
+	Polymer({
+		is: "regtentry-container",
+		properties: {
+			taskname: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setSectionGroup"
+			},
+			type: {
+				type: String,
+				reflectToAttribute: true,
+				notify: true,
+				observer: "setSectionGroup"
+			},
+			contentsHidden: {
+				type: Boolean,
+				value: true,
+				notify: true,
+				observer: "toggleContents"
+			}
+		},
+		listeners: {
+			tap: "toggleContents"
+		},
+		ready: function() {
+			this.listen(this.$.container, 'down', 'eventAbsorber');
+			this.listen(this.$.container, 'tap', 'eventAbsorber');
+			this.listen(this.$.removeBtn, 'down', 'eventAbsorber');
+			this.listen(this.$.removeBtn, 'tap', 'removeSection');
+		},
+		attached: function() {
+		},
+		detached: function() {
+		},
+		removeSection: function(e) {
+			if (e) e.stopPropagation();
+
+			if (this.owner) {
+				this.owner.removeSection(this.taskname);
+			} else {
+				cosole.warn(this, "No owner for task");
+			}
+		},
+		toggleContents: function(val, arg) {
+			if (val instanceof Event) {
+				this.contentsHidden = !this.contentsHidden;
+				return;
+			}
+			if (arg == 'noanimation') {
+				this.$.card.style.transition = 'none';
+				setTimeout((() => {
+					this.$.card.style.transition = '';
+				}).bind(this), 500);
+			}
+			if (val) {
+				// Hidden
+				this.$.card.style.height = '60px';
+				this.$.cascade.style.transform = '';
+			} else {
+				// Show
+				this.updateHeight();
+				this.$.cascade.style.transform = 'rotate(180deg)';
+			}
+		},
+		updateHeight: function() {
+			if (this.contentsHidden)
+				return;
+			if (this.$.container.clientHeight == 0) {
+				this.$.card.style.height = '72px';
+				requestAnimationFrame(() => {
+					this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
+				});
+			} else {
+				this.$.card.style.height = (72+this.$.container.clientHeight) + 'px';
+			}
+		},
+		eventAbsorber: function(e) {
+			e.stopPropagation();
+		}
+	});
+	</script>
+</dom-module>

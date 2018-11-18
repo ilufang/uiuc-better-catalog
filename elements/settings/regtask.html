@@ -1,0 +1,246 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-material/paper-material.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../../bower_components/neon-animation/neon-animated-pages.html">
+
+<link rel="import" href="regtask/regtentry-container.html">
+
+<dom-module id="uiuc-settings-regtask">
+	<template>
+		<style type="text/css">
+		.container {
+			margin: 1em;
+		}
+		#log {
+			display: block;
+			margin: 1em;
+			max-height: 14em;
+			overflow: auto;
+		}
+		#log p {
+			font-size: 1em;
+			font-family: monospace;
+			line-height: 1em;
+			margin: 0px;
+			padding: 0px;
+		}
+		#log .warn {
+			color: #ef6c00; /*--paper-orange-800*/
+		}
+		#log .error {
+			color: #f00;
+		}
+		#log .info {
+			font-weight: bold;
+		}
+		#log .success {
+			color: #0c0;
+		}
+		#task-create {
+			padding: 0.4em 1em;
+		}
+		#task-create paper-input {
+			width: 16em;
+			margin: 0px 1em;
+			display: inline-block;
+		}
+		</style>
+		<div class="container">
+			<div id="tasks"></div>
+			<paper-material id="task-create">
+				<paper-dropdown-menu label="Task Type">
+					<paper-listbox id="list_nttype" class="dropdown-content" selected="{{nt_type}}">
+						<paper-item name="timer">Timer</paper-item>
+						<paper-item name="notify">Notification</paper-item>
+						<paper-item name="logic">Logical Expression</paper-item>
+						<paper-item name="seat">Open Seats</paper-item>
+						<paper-item name="major">Major Change</paper-item>
+						<paper-item name="cohort">Cohort Change</paper-item>
+						<paper-item name="reg">Register</paper-item>
+					</paper-listbox>
+				</paper-dropdown-menu>
+				<paper-input label="Task Name" value="{{nt_id}}"></paper-input>
+				<paper-button on-tap="createTask">
+					<iron-icon icon="add"></iron-icon> Create Task
+				</paper-button>
+				<p id="desc_nttype"></p>
+			</paper-material>
+			<div id="log"></div>
+			<div id="help">
+				<hr />
+				<p>
+RegBot Tasks can automatically register for classes when a certain condition is
+met. You can create a series of tasks to describe your registration logic. The
+tasks are evaluated in a "dependency chain" manner, in which each rule will be
+executed when its previous rule is fulfilled.
+				</p>
+				<p>
+A typical rule starts with a timer, which simply fulfills once per interval,
+allowing another rule to execute periodically by depending on this timer rule.
+For example, a simple rule that registers for CRN 12345 when a seat is available
+looks like:
+				</p>
+				<ul>
+					<li><code>CLK</code>: Timer (30s)</li>
+					<li><code>CHECK</code>: [DEP: CLK] Check Open Seats (12345) </li>
+					<li><code>REG</code>: [DEP: CHECK] Register/Drop CRN(s) (+12345) </li>
+					<li><code>NOTIFY1</code>: [DEP: CHECK] Notification (Seat Available!!!)</li>
+					<li><code>NOTIFY2</code>: [DEP: REG] Notification (Registered!!!)</li>
+				</ul>
+				<p>
+More complicated logic can be constructed using logical expressions
+				</p>
+			</div>
+		</div>
+	</template>
+	<script>
+	Polymer({
+		is: "uiuc-settings-regtask",
+		properties: {
+			tasks: "Object",
+			nt_type: {
+				type: "String",
+				observer: "nttypeChange"
+			}
+		},
+		ready: function() {
+			this.$["list_nttype"].attrForSelected="name";
+			this.$["desc_nttype"].attrForSelected="name";
+			this.$["desc_nttype"].entryAnimation="fade-in-animation";
+			this.$["desc_nttype"].exitAnimation="fade-out-animation";
+		},
+		attached: function() {
+			this.loadTask();
+		},
+		nttypeChange: function(type) {
+			let desc = null;
+			switch(type) {
+				case "timer":
+					desc = "Periodically fulfills on set interval";
+					break;
+				case "notify":
+					desc = "Displays a desktop notification";
+					break;
+				case "logic":
+					desc = "Fulfills when the set logic evaluates to true. ";
+					break;
+				case "seat":
+					desc = "Fulfills when there are available seats in a CRN";
+					break;
+				case "major":
+					desc = "Fulfills when the field-of-study restriction changes in a CRN";
+					break;
+				case "cohort":
+					desc = "Fulfills when the cohort restriction changes in a CRN";
+					break;
+				case "reg":
+					desc = "Add/Drop CRNs";
+					break;
+			}
+			if (desc) {
+				this.$["desc_nttype"].innerHTML = desc;
+			}
+		},
+		loadTask: function() {
+			let jsontask = localStorage.getItem("regtask");
+			if (!jsontask || jsontask.length == 0) {
+				this.tasks = {};
+			} else {
+				let tasks = JSON.parse(jsontask);
+				for (taskname in tasks) {
+					let task = tasks[taskname];
+					let el = this.createTaskEl(taskname, task.type);
+					el.setParams(task);
+				}
+			}
+			window.regtasks = this.tasks;
+		},
+		saveTask: function() {
+			if (!this.tasks) {
+				return;
+			}
+			let taskobj = {};
+			for (task in this.tasks) {
+				taskobj[task] = this.tasks[task].getParams();
+			}
+			localStorage.setItem("regbot", JSON.stringify(taskobj));
+		},
+		createTask: function() {
+			let taskname = this.nt_id;
+			let tasktype = this.nt_type;
+			if (!tasktype) {
+				alert("Please specify task type");
+				return;
+			}
+			if (!taskname.match(/[a-zA-Z]\w*/)) {
+				alert("Only alphanumeric task names are allowed");
+				return;
+			}
+			if (this.tasks[taskname]) {
+				alert("Task already exists");
+				return;
+			}
+			// Sanitize javascript reserved words and global variables
+			// Eval warning: if you are an user, know what you are doing
+			// if you are sending weird stuff into eval
+			// If you are adapting this application into a web app, this
+			// eval might cause security vulnerabilities
+			try {
+				if (eval(`(${taskname} => ${taskname})(114514)`) != 114514) {
+					alert("WTF are you doing???");
+					return;
+				}
+			} catch (e) {
+				alert("Please try a different task name");
+			}
+			try {
+				eval(taskname);
+				alert("Please try a different task name");
+				return;
+			} catch (e) {
+				if (!e instanceof ReferenceError) {
+					alert("Please try a different task name");
+					return;
+				}
+			}
+			// End of validity check, create new task
+			this.createTaskEl(taskname, tasktype);
+			// Reset form
+			this.nt_id = "";
+		},
+		createTaskEl: function(taskname, tasktype) {
+			// Instantiate task
+			let el = document.createElement(`regtentry-${tasktype}`);
+			this.tasks[taskname] = el;
+
+			// Create container
+			let box = document.createElement("regtentry-container");
+			box.taskname = taskname;
+			box.owner = this;
+			box.appendChild(el);
+
+			this.$.tasks.appendChild(box);
+
+			return el;
+		},
+		removeSection: function(taskname) {
+			// TODO
+		},
+		msg: function(type, msg) {
+			var line = document.createElement("p");
+			line.className = type;
+			line.innerText = msg;
+			Polymer.dom(this.$.log).appendChild(line);
+		},
+		clearlog: function() {
+			Polymer.dom(this.$.log).innerHTML = "";
+		}
+	});
+	</script>
+
+</dom-module>
+</html>
