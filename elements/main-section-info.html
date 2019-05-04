@@ -392,6 +392,10 @@ function printTime(obj) {
 					// Closed
 					this.$.status.style.color = '#F44336';
 					break;
+				case 5:
+					// Pending
+					this.$.status.style.color = '#999';
+					break;
 			}
 
 			this.credit = Course.getCredit(section.credit);
