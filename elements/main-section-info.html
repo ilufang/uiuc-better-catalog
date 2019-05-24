@@ -258,7 +258,6 @@ function printTime(obj) {
 		<paper-material id="card">
 			<div id="main">
 				<div>
-					<strong id="caption">[[title]]</strong>
 					<span id="status"><iron-icon icon="radio-button-checked"></iron-icon> [[status]]</span>
 					<span id="code">
 						[[code]] ([[_crn]])
@@ -266,6 +265,7 @@ function printTime(obj) {
 					</span>
 				</div>
 				<strong id="credit">[[credit]]</strong> | <span>Term [[term]]</span>
+				<h3 id="caption">[[title]]</h3>
 				<p id="description"></p>
 				<p id="restrictions"></p>
 				<table>
@@ -306,6 +306,7 @@ function printTime(obj) {
 			},
 			_crn: String,
 			code: String,
+			title: String,
 			credit: String,
 			term: String,
 			course: String, // TODO: this is a workaround
@@ -376,6 +377,10 @@ function printTime(obj) {
 		setSection: function(section) {
 			this._crn = section.crn;
 			this.code = section.section;
+
+			if (section.title && section.title.length) {
+				this.title = section.title;
+			}
 
 			this.status = section.status.msg;
 			switch (section.status.code) {
