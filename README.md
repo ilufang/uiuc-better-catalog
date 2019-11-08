@@ -6,6 +6,16 @@
 
 *Notice: We are currently preparing for the next release. Bleeding edge features are published in `dev` branch while somewhat stablized features are merged into `master`. The latest release is out-of-date. Please run from source if you want the latest features. A new release will be created soon.*
 
+## Updated Launch Instructions
+
+As I have been unable to devote time into this, Polymer, webComponents and electron features are starting to get outdated and causing issues. It seems that the latest electron has issues with some features, as well as breaks webviews. Follow these steps to get around these issues:
+
+1. Download the latest release from the github releases page
+2. Replace the `res/app` folder with a clone of the dev branch. On mac you you need to right-click the app and click show package contents to reveal files.
+3. Launch using the provided electron binary
+
+The manual launch instructions below will likely NOT work. RegBot is broken due to chromium issues with webviews.
+
 ## Features
 
 * Full-featured course explorer, automatically synchronized with officiall `courses.illinois.edu` data
