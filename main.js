@@ -18,6 +18,7 @@ function createWindow () {
 			webviewTag: true
 		}
 	});
+	global.mainWindow = mainWindow;
 	mainWindow.loadURL(`file://${__dirname}/index.html`);
 
 	// Open the DevTools.

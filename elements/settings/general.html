@@ -1,4 +1,5 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
 
 <dom-module id="uiuc-settings-general">
 	<template>
@@ -8,16 +9,26 @@
 		}
 		</style>
 		<div class="container">
-		General
+		<p>General</p>
+		<paper-button on-tap="devtools">Open DevTools</paper-button>
+		<paper-button on-tap="reload">Reload</paper-button>
 		</div>
 	</template>
 	<script>
+	const remote = require("electron").remote;
+	const mainWindow = remote.getGlobal("mainWindow");
 	Polymer({
 		is: "uiuc-settings-general",
 		properties: {
 		},
 		ready: function() {
 		},
+		devtools: function() {
+			mainWindow.openDevTools();
+		},
+		reload: function() {
+			location.reload();
+		}
 	});
 	</script>
 
